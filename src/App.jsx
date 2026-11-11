@@ -1,143 +1,150 @@
-import React, { Suspense, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, OrthographicCamera } from '@react-three/drei';
-import { Building2, Instagram, MapPin, Maximize2, Trees, Users } from 'lucide-react';
+import { Instagram, Trees, Users } from 'lucide-react';
+import * as THREE from 'three';
 
-const C = {
-  grass: '#8fc58c', grass2: '#a8d39a', road: '#596b73', roadEdge: '#d9d8c8',
-  sidewalk: '#e8e1ce', cream: '#f4e8ce', blue: '#8fc1d0', coral: '#e69b7d',
-  yellow: '#e8c76f', mint: '#9fc7a5', dark: '#526d61'
-};
+function terrainHeight(x,z) {
+  const hill=(cx,cz,rx,rz,h)=>h*Math.exp(-(((x-cx)/rx)**2+((z-cz)/rz)**2));
+  return .15
+    + hill(-24,-18,17,14,5.8)
+    + hill(19,-25,19,16,7.2)
+    + hill(25,17,18,15,5.2)
+    + hill(-18,25,20,17,4.5)
+    + hill(0,0,28,24,1.15)
+    + Math.sin(x*.12+z*.07)*.32
+    + Math.cos(z*.16-x*.045)*.24;
+}
 
-function Ground() {
-  return <group>
-    <mesh rotation-x={-Math.PI/2} position={[0,-.16,0]} receiveShadow>
-      <planeGeometry args={[64,64]}/><meshStandardMaterial color={C.grass}/>
+function Terrain() {
+  const geometry=useMemo(()=>{
+    const geo=new THREE.PlaneGeometry(100,100,150,150);
+    const p=geo.attributes.position;
+    const colors=[];
+    const low=new THREE.Color('#83bd70');
+    const mid=new THREE.Color('#9bce7d');
+    const high=new THREE.Color('#b5d88b');
+    for(let i=0;i<p.count;i++){
+      const x=p.getX(i), z=-p.getY(i);
+      const y=terrainHeight(x,z);
+      p.setZ(i,y);
+      const t=THREE.MathUtils.clamp((y-.2)/7,0,1);
+      const c=low.clone().lerp(mid,Math.min(t*2,1)).lerp(high,Math.max(0,t-.55)*.55);
+      const variation=(Math.sin(x*1.7+z*.8)*.012);
+      c.offsetHSL(0,0,variation);
+      colors.push(c.r,c.g,c.b);
+    }
+    geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+    geo.computeVertexNormals();
+    return geo;
+  },[]);
+  return <mesh geometry={geometry} rotation-x={-Math.PI/2} receiveShadow>
+    <meshStandardMaterial vertexColors roughness={1}/>
+  </mesh>;
+}
+
+const treePalette=[
+  ['#367c4c','#4b9858','#6eae68'],
+  ['#397f58','#579e68','#83bd79'],
+  ['#477f43','#6ba34e','#94bd64'],
+  ['#34775b','#4b9369','#77b47c']
+];
+
+function Tree({x,z,scale=1,variant=0}) {
+  const y=terrainHeight(x,z);
+  const colors=treePalette[variant%treePalette.length];
+  const canopy=variant%2===0;
+  return <group position={[x,y,z]} scale={scale}>
+    <mesh position={[0,.9,0]} castShadow>
+      <cylinderGeometry args={[.17,.28,1.8,7]}/>
+      <meshStandardMaterial color="#79533a" roughness={1}/>
     </mesh>
-    <mesh position={[0,-.31,0]} receiveShadow>
-      <boxGeometry args={[64,.3,64]}/><meshStandardMaterial color="#79ad78"/>
-    </mesh>
-    {Array.from({length:65},(_,i)=><mesh key={i} rotation-x={-Math.PI/2} position={[-29+(i%13)*4.8,-.145,-27+Math.floor(i/13)*9]}>
-      <circleGeometry args={[.12,6]}/><meshBasicMaterial color="#d2e6a6"/>
-    </mesh>)}
-  </group>;
-}
-
-function Road({x=0,z=0,length=62,vertical=false,width=5.8}) {
-  return <group position={[x,0,z]}>
-    <mesh rotation-x={-Math.PI/2} position={[0,.005,0]} receiveShadow>
-      <planeGeometry args={vertical?[width,length]:[length,width]}/><meshStandardMaterial color={C.road} roughness={1}/>
-    </mesh>
-    {[-width/2+.18,width/2-.18].map((v,i)=><mesh key={i} rotation-x={-Math.PI/2} position={vertical?[v,.018,0]:[0,.018,v]}>
-      <planeGeometry args={vertical?[.18,length]:[length,.18]}/><meshStandardMaterial color="#e5e0cf"/>
-    </mesh>)}
-    {Array.from({length:Math.floor(length/5)},(_,i)=><mesh key={i} rotation-x={-Math.PI/2} position={vertical?[0,.025,-length/2+2.5+i*5]:[-length/2+2.5+i*5,.025,0]}>
-      <planeGeometry args={vertical?[.12,2.1]:[2.1,.12]}/><meshBasicMaterial color="#f5d985"/>
-    </mesh>)}
-  </group>;
-}
-
-function Tree({x,z,size=1,tone=0}) {
-  const greens=['#438b5c','#5b9d65','#78ae70'];
-  return <group position={[x,0,z]} scale={size}>
-    <mesh position={[0,.58,0]} castShadow><cylinderGeometry args={[.13,.2,1.16,6]}/><meshStandardMaterial color="#896449"/></mesh>
-    <mesh position={[0,1.52,0]} castShadow><icosahedronGeometry args={[.88,1]}/><meshStandardMaterial color={greens[tone%3]} flatShading/></mesh>
-    <mesh position={[.38,1.34,.12]} castShadow><icosahedronGeometry args={[.48,0]}/><meshStandardMaterial color="#8abf78" flatShading/></mesh>
-  </group>;
-}
-
-function Lamp({x,z}) {
-  return <group position={[x,0,z]}>
-    <mesh position={[0,1.15,0]}><cylinderGeometry args={[.055,.075,2.3,6]}/><meshStandardMaterial color="#465b57"/></mesh>
-    <mesh position={[0,2.32,0]}><sphereGeometry args={[.2,8,6]}/><meshStandardMaterial color="#fff1bf" emissive="#f8d98a" emissiveIntensity={.35}/></mesh>
-  </group>;
-}
-
-function Bench({x,z,rotation=0}) {
-  return <group position={[x,0,z]} rotation-y={rotation}>
-    <mesh position={[0,.48,0]} castShadow><boxGeometry args={[1.5,.14,.48]}/><meshStandardMaterial color="#b77b4d"/></mesh>
-    <mesh position={[0,.78,-.2]} castShadow><boxGeometry args={[1.5,.48,.12]}/><meshStandardMaterial color="#a96e47"/></mesh>
-    {[-.55,.55].map(v=><mesh key={v} position={[v,.23,0]}><boxGeometry args={[.12,.48,.12]}/><meshStandardMaterial color="#4f6159"/></mesh>)}
-  </group>;
-}
-
-function Building({x,z,w=5,d=5,h=8,color=C.cream,roof=C.coral,floors=4,style='flat'}) {
-  const windows=Array.from({length:floors},(_,i)=>i);
-  const cols=Math.max(2,Math.floor(w/1.15));
-  return <group position={[x,0,z]}>
-    <mesh position={[0,.16,0]} receiveShadow><boxGeometry args={[w+.8,.3,d+.8]}/><meshStandardMaterial color={C.sidewalk}/></mesh>
-    <mesh position={[0,h/2+.3,0]} castShadow receiveShadow><boxGeometry args={[w,h,d]}/><meshStandardMaterial color={color} flatShading roughness={.88}/></mesh>
-    <mesh position={[0,h+.34,0]} castShadow><boxGeometry args={[w+.22,.34,d+.22]}/><meshStandardMaterial color={roof} flatShading/></mesh>
-    {windows.map(row=>Array.from({length:cols},(_,col)=><group key={row+'-'+col}>
-      <mesh position={[-w/2+.65+col*(w-.9)/(cols-1),.95+row*(h-.8)/floors,d/2+.018]}>
-        <boxGeometry args={[.43,.62,.045]}/><meshStandardMaterial color="#9dd4dc" emissive="#477c82" emissiveIntensity={.08}/>
+    {[[-.35,1.5,0,.11],[.35,1.65,.05,.1],[-.12,2,.18,.09],[.2,2.15,-.1,.08]].map(([bx,by,bz,r],i)=>
+      <mesh key={i} position={[bx,by,bz]} rotation-z={(i%2?-.55:.55)}>
+        <cylinderGeometry args={[r,.13,.85,6]}/><meshStandardMaterial color="#805a3e"/>
       </mesh>
-      <mesh position={[-w/2+.65+col*(w-.9)/(cols-1),.95+row*(h-.8)/floors,d/2+.045]}>
-        <boxGeometry args={[.48,.055,.055]}/><meshStandardMaterial color="#f5e6c9"/>
-      </mesh>
-    </group>))}
-    <mesh position={[0,.95,d/2+.045]}><boxGeometry args={[.72,1.3,.08]}/><meshStandardMaterial color="#805c48"/></mesh>
-    {style==='balcony' && windows.slice(1).map(row=><mesh key={row} position={[0,.92+row*(h-.8)/floors,d/2+.16]}><boxGeometry args={[w-.5,.08,.35]}/><meshStandardMaterial color="#f4e8d1"/></mesh>)}
-    <mesh position={[0,h+.55,0]}><boxGeometry args={[w*.45,.12,d*.45]}/><meshStandardMaterial color="#9da99b"/></mesh>
+    )}
+    {canopy ? <>
+      <mesh position={[0,2.75,0]} castShadow><icosahedronGeometry args={[1.35,2]}/><meshStandardMaterial color={colors[1]} flatShading roughness={1}/></mesh>
+      <mesh position={[-.72,2.45,.12]} castShadow><icosahedronGeometry args={[.85,1]}/><meshStandardMaterial color={colors[0]} flatShading/></mesh>
+      <mesh position={[.72,2.48,-.08]} castShadow><icosahedronGeometry args={[.9,1]}/><meshStandardMaterial color={colors[2]} flatShading/></mesh>
+      <mesh position={[.05,3.45,.15]} castShadow><icosahedronGeometry args={[.72,1]}/><meshStandardMaterial color={colors[2]} flatShading/></mesh>
+    </> : <>
+      <mesh position={[0,2.55,0]} castShadow><coneGeometry args={[1.12,1.8,8]}/><meshStandardMaterial color={colors[1]} flatShading/></mesh>
+      <mesh position={[0,3.35,0]} castShadow><coneGeometry args={[.82,1.55,8]}/><meshStandardMaterial color={colors[2]} flatShading/></mesh>
+      <mesh position={[0,4.05,0]} castShadow><coneGeometry args={[.52,1.15,8]}/><meshStandardMaterial color={colors[0]} flatShading/></mesh>
+    </>}
   </group>;
 }
 
-function Car({x,z,color='#e6a36f',rotation=0}) {
-  return <group position={[x,.12,z]} rotation-y={rotation}>
-    <mesh position={[0,.32,0]} castShadow><boxGeometry args={[1.8,.48,.9]}/><meshStandardMaterial color={color} flatShading/></mesh>
-    <mesh position={[-.12,.66,0]} castShadow><boxGeometry args={[.95,.35,.76]}/><meshStandardMaterial color="#b9d9dc" roughness={.3}/></mesh>
-    {[-.58,.58].flatMap(a=>[-.42,.42].map(b=><mesh key={a+'-'+b} rotation-z={Math.PI/2} position={[a,.15,b]}><cylinderGeometry args={[.2,.2,.12,10]}/><meshStandardMaterial color="#34434a"/></mesh>))}
+function Bush({x,z,scale=1,color='#5b9d5e'}) {
+  const y=terrainHeight(x,z);
+  return <group position={[x,y,z]} scale={scale}>
+    {[[0,.35,0],[-.35,.25,.08],[.3,.28,-.1],[.08,.48,.18]].map(([a,b,c],i)=>
+      <mesh key={i} position={[a,b,c]} castShadow><dodecahedronGeometry args={[.42,1]}/><meshStandardMaterial color={i%2?color:'#75b96d'} flatShading/></mesh>
+    )}
   </group>;
 }
 
-function Park({x,z}) {
-  return <group position={[x,0,z]}>
-    <mesh rotation-x={-Math.PI/2} position={[0,.015,0]}><planeGeometry args={[13,12]}/><meshStandardMaterial color="#acd39a"/></mesh>
-    <mesh rotation-x={-Math.PI/2} position={[0,.03,0]}><circleGeometry args={[2.1,12]}/><meshStandardMaterial color="#e9dfc8"/></mesh>
-    <mesh position={[0,.32,0]} castShadow><cylinderGeometry args={[.85,1.05,.6,10]}/><meshStandardMaterial color="#8fc5c8"/></mesh>
-    <mesh position={[0,.72,0]}><cylinderGeometry args={[.48,.48,.2,10]}/><meshStandardMaterial color="#d8f0e8"/></mesh>
-    {[[-4,-3],[4,-3],[-4,3],[4,3]].map(([tx,tz],i)=><Tree key={i} x={tx} z={tz} size={.8} tone={i}/>)}
-    <Bench x={-2.4} z={1.2} rotation={.5}/><Bench x={2.4} z={1.2} rotation={-.5}/>
+function FlowerPatch({x,z}) {
+  const y=terrainHeight(x,z);
+  const flowers=['#f5e7a0','#fff4e7','#e8a6a2','#c4a6df'];
+  return <group position={[x,y,z]}>
+    {Array.from({length:9},(_,i)=>{
+      const a=i*2.4, r=.25+(i%3)*.16;
+      return <group key={i} position={[Math.cos(a)*r,0,Math.sin(a)*r]}>
+        <mesh position={[0,.18,0]}><cylinderGeometry args={[.018,.025,.36,5]}/><meshStandardMaterial color="#4e9857"/></mesh>
+        <mesh position={[0,.39,0]}><sphereGeometry args={[.11,7,6]}/><meshStandardMaterial color={flowers[i%4]}/></mesh>
+      </group>;
+    })}
   </group>;
 }
 
-function City() {
+function GrassTuft({x,z,scale=1}) {
+  const y=terrainHeight(x,z);
+  return <group position={[x,y,z]} scale={scale}>
+    {[-.18,0,.18].map((v,i)=><mesh key={i} position={[v,.22,0]} rotation-z={(i-1)*-.45}>
+      <coneGeometry args={[.09,.5,4]}/><meshStandardMaterial color={i===1?'#6da95d':'#85bd69'} flatShading/>
+    </mesh>)}
+  </group>;
+}
+
+function Nature() {
   const trees=useMemo(()=>[
-    [-27,-23],[-23,-23],[-19,-23],[19,-23],[23,-23],[27,-23],
-    [-27,23],[-23,23],[-19,23],[19,23],[23,23],[27,23],
-    [-27,-7],[-27,7],[27,-7],[27,7],[-7,-27],[7,-27],[-7,27],[7,27]
+    [-38,-30,.95,0],[-30,-35,1.2,1],[-20,-31,.85,2],[-8,-38,1.1,0],[8,-34,.9,3],[24,-37,1.15,1],[38,-27,1,2],
+    [-42,-12,1.2,3],[-31,-8,.9,0],[-22,5,1.25,1],[-38,17,1.1,2],[-29,31,1.15,0],[-14,36,.9,3],
+    [2,29,1.2,1],[17,35,1.05,2],[32,27,1.2,0],[42,12,.95,3],[35,-4,1.2,1],[25,8,.85,2],
+    [8,-12,.85,0],[-7,-18,1.1,2],[15,-20,1.2,3],[-43,36,.95,1],[43,38,1.1,0],
+    [-5,8,.82,3],[4,15,.9,1],[20,18,.95,2]
   ],[]);
+  const bushes=useMemo(()=>[
+    [-34,-20],[-25,-18],[-12,-28],[1,-30],[17,-29],[30,-18],[39,-12],
+    [-39,4],[-28,13],[-17,22],[-4,28],[12,26],[27,20],[39,22],
+    [-35,30],[5,-4],[29,2],[-14,-8]
+  ],[]);
+  const flowers=useMemo(()=>[[-32,-25],[-17,-34],[12,-37],[34,-28],[-40,22],[-22,28],[-4,34],[20,30],[39,9],[1,-16]],[]);
+  const tufts=useMemo(()=>Array.from({length:100},(_,i)=>{
+    const x=((i*37)%91)-45, z=((i*53)%91)-45;
+    return [x,z,.55+(i%5)*.16];
+  }),[]);
   return <group>
-    <Ground/>
-    <Road z={0}/><Road x={0} vertical/>
-    <Road z={-19}/><Road z={19}/><Road x={-19} vertical/><Road x={19} vertical/>
-    <Park x={-9.5} z={-9.5}/>
-    <Building x={9.5} z={-9.5} w={6} d={5} h={12} color="#d7e4e2" roof="#668f91" floors={6} style="balcony"/>
-    <Building x={-9.5} z={9.5} w={5.5} d={5} h={8} color="#f0d6ae" roof="#c78c63" floors={4}/>
-    <Building x={9.5} z={9.5} w={6} d={5} h={10} color="#e9b9a5" roof="#bd7969" floors={5} style="balcony"/>
-    <Building x={-28} z={-9.5} w={5} d={5} h={6} color="#d8e2b9" roof="#9aab77" floors={3}/>
-    <Building x={28} z={-9.5} w={5} d={5} h={9} color="#b8d5e0" roof="#789cae" floors={4}/>
-    <Building x={-28} z={9.5} w={5} d={5} h={7} color="#edc1b0" roof="#c57c69" floors={4}/>
-    <Building x={28} z={9.5} w={5} d={5} h={6} color="#e9d9a9" roof="#c0a45f" floors={3}/>
-    {trees.map(([x,z],i)=><Tree key={i} x={x} z={z} size={.75+(i%3)*.12} tone={i}/>)}
-    {[-24,-14,14,24].map((v,i)=><Lamp key={'l'+i} x={v} z={-3.8}/>)}
-    <Car x={-8} z={2.2} color="#e9a17d" rotation={Math.PI/2}/>
-    <Car x={7} z={-2.1} color="#7ea9c5" rotation={Math.PI/2}/>
-    <Car x={-24} z={-3} color="#e8c76f"/>
-    <Car x={23} z={3} color="#8bb795"/>
+    <Terrain/>
+    {trees.map(([x,z,s,v],i)=><Tree key={'tree'+i} x={x} z={z} scale={s} variant={v}/>)}
+    {bushes.map(([x,z],i)=><Bush key={'bush'+i} x={x} z={z} scale={.7+(i%3)*.18}/>)}
+    {flowers.map(([x,z],i)=><FlowerPatch key={'flower'+i} x={x} z={z}/>)}
+    {tufts.map(([x,z,s],i)=><GrassTuft key={'grass'+i} x={x} z={z} scale={s}/>)}
   </group>;
 }
 
 function Scene() {
   return <>
-    <color attach="background" args={['#cce8d9']}/>
-    <fog attach="fog" args={['#cce8d9',85,150]}/>
-    <ambientLight intensity={1.7}/>
-    <hemisphereLight args={['#f2fbff','#64875f',.75]}/>
-    <directionalLight position={[20,32,14]} intensity={2.4} castShadow shadow-mapSize={[2048,2048]}/>
-    <OrthographicCamera makeDefault position={[42,48,42]} zoom={15} near={.1} far={220}/>
-    <OrbitControls enableRotate={false} enablePan minDistance={25} maxDistance={95} minZoom={9} maxZoom={24}/>
-    <Suspense fallback={null}><City/></Suspense>
+    <color attach="background" args={['#b9dfec']}/>
+    <ambientLight intensity={1.15}/>
+    <hemisphereLight args={['#e8f8ff','#668c55',.8}/>
+    <directionalLight position={[-25,38,18]} intensity={2.3} castShadow shadow-mapSize={[2048,2048]}/>
+    <OrthographicCamera makeDefault position={[48,57,48]} zoom={11.8} near={.1} far={250}/>
+    <OrbitControls enableRotate maxPolarAngle={Math.PI/2.15} minPolarAngle={Math.PI/5} enablePan minDistance={35} maxDistance={120} minZoom={7} maxZoom={20}/>
+    <Nature/>
   </>;
 }
 
@@ -148,19 +155,8 @@ export default function App() {
     </Canvas>
     <header className="topbar">
       <a className="brand" href="#" aria-label="Instagram City home"><span className="brand-mark"><Instagram size={19}/></span><span>instagram<span className="brand-light">_city</span></span></a>
-      <div className="city-stats">
-        <div className="stat"><Users size={16}/><strong>20</strong><span>жителей</span></div>
-        <div className="stat"><Building2 size={16}/><strong>8</strong><span>зданий</span></div>
-        <div className="stat online"><i/>город активен</div>
-      </div>
+      <div className="city-stats"><div className="stat"><Users size={16}/><strong>20</strong><span>жителей</span></div></div>
     </header>
-    <aside className="welcome-card">
-      <span className="eyebrow"><MapPin size={13}/> ВАШ ВИРТУАЛЬНЫЙ ГОРОД</span>
-      <h1>Город начинается<br/>с одного жителя.</h1>
-      <p>Первые улицы Instagram City уже построены. Скоро здесь появится ваш персонаж.</p>
-      <div className="welcome-footer"><span><Trees size={15}/> Современный район</span><span>Сезон 01</span></div>
-    </aside>
-    <div className="map-hint"><Maximize2 size={14}/> Перетаскивайте карту · Колесо мыши — масштаб</div>
-    <div className="bottom-pill"><span className="pulse"/> Первый район · Центральная площадь</div>
+    <div className="bottom-pill"><span className="pulse"/> Зелёная долина · Природная зона</div>
   </main>;
 }
