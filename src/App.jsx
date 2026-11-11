@@ -1,211 +1,166 @@
-import React from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, OrthographicCamera } from '@react-three/drei';
-import { Suspense, useMemo } from 'react';
-import { Trees, Building2, Users, MapPin, Instagram, Maximize2 } from 'lucide-react';
-import * as THREE from 'three';
+import { Building2, Instagram, MapPin, Maximize2, Trees, Users } from 'lucide-react';
 
-const palette = {
-  grass: '#9bcf9b',
-  grassLight: '#b7dca9',
-  road: '#687783',
-  roadLine: '#f4d77b',
-  sidewalk: '#d8d9c9',
-  white: '#f8f8f2',
-  blue: '#83b8d7',
-  coral: '#e99b83',
-  yellow: '#e8c66f',
-  green: '#83b78c',
+const C = {
+  grass: '#8fc58c', grass2: '#a8d39a', road: '#596b73', roadEdge: '#d9d8c8',
+  sidewalk: '#e8e1ce', cream: '#f4e8ce', blue: '#8fc1d0', coral: '#e69b7d',
+  yellow: '#e8c76f', mint: '#9fc7a5', dark: '#526d61'
 };
 
 function Ground() {
-  return (
-    <group>
-      <mesh rotation-x={-Math.PI / 2} position={[0, -0.18, 0]} receiveShadow>
-        <planeGeometry args={[66, 66]} />
-        <meshStandardMaterial color={palette.grass} />
-      </mesh>
-      <mesh position={[0, -0.27, 0]} receiveShadow>
-        <boxGeometry args={[66, 0.25, 66]} />
-        <meshStandardMaterial color="#83b77f" />
-      </mesh>
-      {Array.from({ length: 18 }, (_, i) => (
-        <mesh key={i} rotation-x={-Math.PI / 2} position={[-29 + i * 3.4, -0.165, -28 + (i % 3) * 2]}>
-          <circleGeometry args={[0.12 + (i % 2) * 0.08, 7]} />
-          <meshBasicMaterial color="#d5e9a8" />
-        </mesh>
-      ))}
-    </group>
-  );
+  return <group>
+    <mesh rotation-x={-Math.PI/2} position={[0,-.16,0]} receiveShadow>
+      <planeGeometry args={[64,64]}/><meshStandardMaterial color={C.grass}/>
+    </mesh>
+    <mesh position={[0,-.31,0]} receiveShadow>
+      <boxGeometry args={[64,.3,64]}/><meshStandardMaterial color="#79ad78"/>
+    </mesh>
+    {Array.from({length:65},(_,i)=><mesh key={i} rotation-x={-Math.PI/2} position={[-29+(i%13)*4.8,-.145,-27+Math.floor(i/13)*9]}>
+      <circleGeometry args={[.12,6]}/><meshBasicMaterial color="#d2e6a6"/>
+    </mesh>)}
+  </group>;
 }
 
-function Road({ position, size, horizontal = true }) {
-  return (
-    <group position={position}>
-      <mesh rotation-x={-Math.PI / 2} position={[0, 0.015, 0]} receiveShadow>
-        <planeGeometry args={horizontal ? [size, 7] : [7, size]} />
-        <meshStandardMaterial color={palette.road} roughness={1} />
-      </mesh>
-      {[-3.35, 3.35].map((offset) => (
-        <mesh key={offset} rotation-x={-Math.PI / 2} position={horizontal ? [0, 0.025, offset] : [offset, 0.025, 0]}>
-          <planeGeometry args={horizontal ? [size, 0.22] : [0.22, size]} />
-          <meshStandardMaterial color="#cbd3d0" />
-        </mesh>
-      ))}
-      {Array.from({ length: Math.floor(size / 4) }, (_, i) => (
-        <mesh key={i} rotation-x={-Math.PI / 2} position={horizontal ? [-size / 2 + 2 + i * 4, 0.03, 0] : [0, 0.03, -size / 2 + 2 + i * 4]}>
-          <planeGeometry args={horizontal ? [1.7, 0.13] : [0.13, 1.7]} />
-          <meshBasicMaterial color={palette.roadLine} />
-        </mesh>
-      ))}
-    </group>
-  );
+function Road({x=0,z=0,length=62,vertical=false,width=5.8}) {
+  return <group position={[x,0,z]}>
+    <mesh rotation-x={-Math.PI/2} position={[0,.005,0]} receiveShadow>
+      <planeGeometry args={vertical?[width,length]:[length,width]}/><meshStandardMaterial color={C.road} roughness={1}/>
+    </mesh>
+    {[-width/2+.18,width/2-.18].map((v,i)=><mesh key={i} rotation-x={-Math.PI/2} position={vertical?[v,.018,0]:[0,.018,v]}>
+      <planeGeometry args={vertical?[.18,length]:[length,.18]}/><meshStandardMaterial color="#e5e0cf"/>
+    </mesh>)}
+    {Array.from({length:Math.floor(length/5)},(_,i)=><mesh key={i} rotation-x={-Math.PI/2} position={vertical?[0,.025,-length/2+2.5+i*5]:[-length/2+2.5+i*5,.025,0]}>
+      <planeGeometry args={vertical?[.12,2.1]:[2.1,.12]}/><meshBasicMaterial color="#f5d985"/>
+    </mesh>)}
+  </group>;
 }
 
-function Tree({ x, z, scale = 1 }) {
-  return (
-    <group position={[x, 0, z]} scale={scale}>
-      <mesh position={[0, 0.55, 0]} castShadow>
-        <cylinderGeometry args={[0.13, 0.2, 1.1, 6]} />
-        <meshStandardMaterial color="#8c6749" />
-      </mesh>
-      <mesh position={[0, 1.55, 0]} castShadow>
-        <icosahedronGeometry args={[0.9, 1]} />
-        <meshStandardMaterial color="#4f9668" flatShading />
-      </mesh>
-      <mesh position={[0.42, 1.35, 0.12]} castShadow>
-        <icosahedronGeometry args={[0.52, 0]} />
-        <meshStandardMaterial color="#70ad70" flatShading />
-      </mesh>
-    </group>
-  );
+function Tree({x,z,size=1,tone=0}) {
+  const greens=['#438b5c','#5b9d65','#78ae70'];
+  return <group position={[x,0,z]} scale={size}>
+    <mesh position={[0,.58,0]} castShadow><cylinderGeometry args={[.13,.2,1.16,6]}/><meshStandardMaterial color="#896449"/></mesh>
+    <mesh position={[0,1.52,0]} castShadow><icosahedronGeometry args={[.88,1]}/><meshStandardMaterial color={greens[tone%3]} flatShading/></mesh>
+    <mesh position={[.38,1.34,.12]} castShadow><icosahedronGeometry args={[.48,0]}/><meshStandardMaterial color="#8abf78" flatShading/></mesh>
+  </group>;
 }
 
-function Building({ x, z, w = 4, d = 4, h = 5, color = palette.white, roof = '#d97861', label }) {
-  return (
-    <group position={[x, 0, z]}>
-      <mesh position={[0, 0.18, 0]} receiveShadow>
-        <boxGeometry args={[w + 0.5, 0.35, d + 0.5]} />
-        <meshStandardMaterial color={palette.sidewalk} />
-      </mesh>
-      <mesh position={[0, h / 2 + 0.35, 0]} castShadow receiveShadow>
-        <boxGeometry args={[w, h, d]} />
-        <meshStandardMaterial color={color} flatShading roughness={0.9} />
-      </mesh>
-      <mesh position={[0, h + 0.35, 0]} castShadow>
-        <boxGeometry args={[w + 0.12, 0.28, d + 0.12]} />
-        <meshStandardMaterial color={roof} flatShading />
-      </mesh>
-      {Array.from({ length: Math.max(1, Math.floor(h / 1.6)) }, (_, row) =>
-        Array.from({ length: Math.max(1, Math.floor(w / 1.4)) }, (_, col) => (
-          <mesh key={row + '-' + col} position={[-w / 2 + 0.75 + col * 1.35, 1.1 + row * 1.55, d / 2 + 0.012]}>
-            <boxGeometry args={[0.48, 0.62, 0.035]} />
-            <meshStandardMaterial color="#9ed2df" emissive="#426875" emissiveIntensity={0.08} />
-          </mesh>
-        ))
-      )}
-      <mesh position={[0, 0.95, d / 2 + 0.025]}>
-        <boxGeometry args={[0.72, 1.35, 0.06]} />
-        <meshStandardMaterial color="#8b6651" />
-      </mesh>
-    </group>
-  );
+function Lamp({x,z}) {
+  return <group position={[x,0,z]}>
+    <mesh position={[0,1.15,0]}><cylinderGeometry args={[.055,.075,2.3,6]}/><meshStandardMaterial color="#465b57"/></mesh>
+    <mesh position={[0,2.32,0]}><sphereGeometry args={[.2,8,6]}/><meshStandardMaterial color="#fff1bf" emissive="#f8d98a" emissiveIntensity={.35}/></mesh>
+  </group>;
 }
 
-function Plaza() {
-  return (
-    <group position={[0, 0.015, 0]}>
-      <mesh rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
-        <circleGeometry args={[5.3, 8]} />
-        <meshStandardMaterial color="#e9dfc5" />
+function Bench({x,z,rotation=0}) {
+  return <group position={[x,0,z]} rotation-y={rotation}>
+    <mesh position={[0,.48,0]} castShadow><boxGeometry args={[1.5,.14,.48]}/><meshStandardMaterial color="#b77b4d"/></mesh>
+    <mesh position={[0,.78,-.2]} castShadow><boxGeometry args={[1.5,.48,.12]}/><meshStandardMaterial color="#a96e47"/></mesh>
+    {[-.55,.55].map(v=><mesh key={v} position={[v,.23,0]}><boxGeometry args={[.12,.48,.12]}/><meshStandardMaterial color="#4f6159"/></mesh>)}
+  </group>;
+}
+
+function Building({x,z,w=5,d=5,h=8,color=C.cream,roof=C.coral,floors=4,style='flat'}) {
+  const windows=Array.from({length:floors},(_,i)=>i);
+  const cols=Math.max(2,Math.floor(w/1.15));
+  return <group position={[x,0,z]}>
+    <mesh position={[0,.16,0]} receiveShadow><boxGeometry args={[w+.8,.3,d+.8]}/><meshStandardMaterial color={C.sidewalk}/></mesh>
+    <mesh position={[0,h/2+.3,0]} castShadow receiveShadow><boxGeometry args={[w,h,d]}/><meshStandardMaterial color={color} flatShading roughness={.88}/></mesh>
+    <mesh position={[0,h+.34,0]} castShadow><boxGeometry args={[w+.22,.34,d+.22]}/><meshStandardMaterial color={roof} flatShading/></mesh>
+    {windows.map(row=>Array.from({length:cols},(_,col)=><group key={row+'-'+col}>
+      <mesh position={[-w/2+.65+col*(w-.9)/(cols-1),.95+row*(h-.8)/floors,d/2+.018]}>
+        <boxGeometry args={[.43,.62,.045]}/><meshStandardMaterial color="#9dd4dc" emissive="#477c82" emissiveIntensity={.08}/>
       </mesh>
-      <mesh position={[0, 0.32, 0]} castShadow>
-        <cylinderGeometry args={[1.15, 1.35, 0.62, 8]} />
-        <meshStandardMaterial color="#9bbdc0" />
+      <mesh position={[-w/2+.65+col*(w-.9)/(cols-1),.95+row*(h-.8)/floors,d/2+.045]}>
+        <boxGeometry args={[.48,.055,.055]}/><meshStandardMaterial color="#f5e6c9"/>
       </mesh>
-      <mesh position={[0, 0.75, 0]} castShadow>
-        <cylinderGeometry args={[0.68, 0.68, 0.25, 8]} />
-        <meshStandardMaterial color="#d7eeee" />
-      </mesh>
-      <mesh position={[0, 1.3, 0]}>
-        <sphereGeometry args={[0.22, 8, 6]} />
-        <meshStandardMaterial color="#b5e5e5" />
-      </mesh>
-      {[[-3.5, -2.8], [3.5, -2.8], [-3.5, 2.8], [3.5, 2.8]].map(([x, z], i) => <Tree key={i} x={x} z={z} scale={0.8} />)}
-    </group>
-  );
+    </group>))}
+    <mesh position={[0,.95,d/2+.045]}><boxGeometry args={[.72,1.3,.08]}/><meshStandardMaterial color="#805c48"/></mesh>
+    {style==='balcony' && windows.slice(1).map(row=><mesh key={row} position={[0,.92+row*(h-.8)/floors,d/2+.16]}><boxGeometry args={[w-.5,.08,.35]}/><meshStandardMaterial color="#f4e8d1"/></mesh>)}
+    <mesh position={[0,h+.55,0]}><boxGeometry args={[w*.45,.12,d*.45]}/><meshStandardMaterial color="#9da99b"/></mesh>
+  </group>;
+}
+
+function Car({x,z,color='#e6a36f',rotation=0}) {
+  return <group position={[x,.12,z]} rotation-y={rotation}>
+    <mesh position={[0,.32,0]} castShadow><boxGeometry args={[1.8,.48,.9]}/><meshStandardMaterial color={color} flatShading/></mesh>
+    <mesh position={[-.12,.66,0]} castShadow><boxGeometry args={[.95,.35,.76]}/><meshStandardMaterial color="#b9d9dc" roughness={.3}/></mesh>
+    {[-.58,.58].flatMap(a=>[-.42,.42].map(b=><mesh key={a+'-'+b} rotation-z={Math.PI/2} position={[a,.15,b]}><cylinderGeometry args={[.2,.2,.12,10]}/><meshStandardMaterial color="#34434a"/></mesh>))}
+  </group>;
+}
+
+function Park({x,z}) {
+  return <group position={[x,0,z]}>
+    <mesh rotation-x={-Math.PI/2} position={[0,.015,0]}><planeGeometry args={[13,12]}/><meshStandardMaterial color="#acd39a"/></mesh>
+    <mesh rotation-x={-Math.PI/2} position={[0,.03,0]}><circleGeometry args={[2.1,12]}/><meshStandardMaterial color="#e9dfc8"/></mesh>
+    <mesh position={[0,.32,0]} castShadow><cylinderGeometry args={[.85,1.05,.6,10]}/><meshStandardMaterial color="#8fc5c8"/></mesh>
+    <mesh position={[0,.72,0]}><cylinderGeometry args={[.48,.48,.2,10]}/><meshStandardMaterial color="#d8f0e8"/></mesh>
+    {[[-4,-3],[4,-3],[-4,3],[4,3]].map(([tx,tz],i)=><Tree key={i} x={tx} z={tz} size={.8} tone={i}/>)}
+    <Bench x={-2.4} z={1.2} rotation={.5}/><Bench x={2.4} z={1.2} rotation={-.5}/>
+  </group>;
 }
 
 function City() {
-  const trees = useMemo(() => [
-    [-23,-20],[-19,-20],[-15,-20],[15,-20],[19,-20],[23,-20],
-    [-23,20],[-19,20],[-15,20],[15,20],[19,20],[23,20],
-    [-24,-9],[-24,-5],[-24,9],[-24,13],[24,-9],[24,-5],[24,9],[24,13],
-    [-10,-24],[-6,-24],[6,-24],[10,-24],[-10,24],[-6,24],[6,24],[10,24]
-  ], []);
-  return (
-    <group>
-      <Ground />
-      <Road position={[0, 0, 0]} size={58} horizontal />
-      <Road position={[0, 0, 0]} size={58} horizontal={false} />
-      <Road position={[0, 0, -16]} size={58} horizontal />
-      <Road position={[0, 0, 16]} size={58} horizontal />
-      <Road position={[-16, 0, 0]} size={58} horizontal={false} />
-      <Road position={[16, 0, 0]} size={58} horizontal={false} />
-      <Plaza />
-      <Building x={-10} z={-10} w={5} d={5} h={10} color="#b5cbd7" roof="#738da3" />
-      <Building x={10} z={-10} w={5} d={5} h={8} color="#e8b99b" roof="#c77d69" />
-      <Building x={-10} z={10} w={5} d={5} h={7} color="#d9d5ad" roof="#b68d65" />
-      <Building x={10} z={10} w={5} d={5} h={11} color="#a8c9b0" roof="#6d997c" />
-      <Building x={-23} z={-10} w={4} d={5} h={5} color="#f0d1a5" roof="#d28a68" />
-      <Building x={23} z={-10} w={4} d={5} h={6} color="#c2d5e5" roof="#758fa7" />
-      <Building x={-23} z={10} w={4} d={5} h={4} color="#e9b6a8" roof="#bd786c" />
-      <Building x={23} z={10} w={4} d={5} h={5} color="#d6d5b6" roof="#a59a6c" />
-      {trees.map(([x,z], i) => <Tree key={i} x={x} z={z} scale={0.75 + (i % 3) * 0.12} />)}
-    </group>
-  );
+  const trees=useMemo(()=>[
+    [-27,-23],[-23,-23],[-19,-23],[19,-23],[23,-23],[27,-23],
+    [-27,23],[-23,23],[-19,23],[19,23],[23,23],[27,23],
+    [-27,-7],[-27,7],[27,-7],[27,7],[-7,-27],[7,-27],[-7,27],[7,27]
+  ],[]);
+  return <group>
+    <Ground/>
+    <Road z={0}/><Road x={0} vertical/>
+    <Road z={-19}/><Road z={19}/><Road x={-19} vertical/><Road x={19} vertical/>
+    <Park x={-9.5} z={-9.5}/>
+    <Building x={9.5} z={-9.5} w={6} d={5} h={12} color="#d7e4e2" roof="#668f91" floors={6} style="balcony"/>
+    <Building x={-9.5} z={9.5} w={5.5} d={5} h={8} color="#f0d6ae" roof="#c78c63" floors={4}/>
+    <Building x={9.5} z={9.5} w={6} d={5} h={10} color="#e9b9a5" roof="#bd7969" floors={5} style="balcony"/>
+    <Building x={-28} z={-9.5} w={5} d={5} h={6} color="#d8e2b9" roof="#9aab77" floors={3}/>
+    <Building x={28} z={-9.5} w={5} d={5} h={9} color="#b8d5e0" roof="#789cae" floors={4}/>
+    <Building x={-28} z={9.5} w={5} d={5} h={7} color="#edc1b0" roof="#c57c69" floors={4}/>
+    <Building x={28} z={9.5} w={5} d={5} h={6} color="#e9d9a9" roof="#c0a45f" floors={3}/>
+    {trees.map(([x,z],i)=><Tree key={i} x={x} z={z} size={.75+(i%3)*.12} tone={i}/>)}
+    {[-24,-14,14,24].map((v,i)=><Lamp key={'l'+i} x={v} z={-3.8}/>)}
+    <Car x={-8} z={2.2} color="#e9a17d" rotation={Math.PI/2}/>
+    <Car x={7} z={-2.1} color="#7ea9c5" rotation={Math.PI/2}/>
+    <Car x={-24} z={-3} color="#e8c76f"/>
+    <Car x={23} z={3} color="#8bb795"/>
+  </group>;
 }
 
 function Scene() {
-  return (
-    <>
-      <color attach="background" args={['#d9eee5']} />
-      <fog attach="fog" args={['#d9eee5', 48, 95]} />
-      <ambientLight intensity={1.35} />
-      <directionalLight position={[18, 28, 12]} intensity={2.1} castShadow shadow-mapSize={[2048, 2048]} />
-      <hemisphereLight args={['#eaf7ff', '#75956f', 0.7]} />
-      <OrthographicCamera makeDefault position={[42, 48, 42]} zoom={17} near={0.1} far={200} />
-      <OrbitControls enableRotate={false} enablePan minDistance={25} maxDistance={90} minZoom={9} maxZoom={25} />
-      <Suspense fallback={null}><City /></Suspense>
-    </>
-  );
+  return <>
+    <color attach="background" args={['#cce8d9']}/>
+    <fog attach="fog" args={['#cce8d9',85,150]}/>
+    <ambientLight intensity={1.7}/>
+    <hemisphereLight args={['#f2fbff','#64875f',.75]}/>
+    <directionalLight position={[20,32,14]} intensity={2.4} castShadow shadow-mapSize={[2048,2048]}/>
+    <OrthographicCamera makeDefault position={[42,48,42]} zoom={15} near={.1} far={220}/>
+    <OrbitControls enableRotate={false} enablePan minDistance={25} maxDistance={95} minZoom={9} maxZoom={24}/>
+    <Suspense fallback={null}><City/></Suspense>
+  </>;
 }
 
 export default function App() {
-  return (
-    <main className="app-shell">
-      <Canvas shadows dpr={[1, 1.6]} gl={{ antialias: true, powerPreference: 'high-performance' }}>
-        <Scene />
-      </Canvas>
-      <header className="topbar">
-        <a className="brand" href="#" aria-label="Instagram City home">
-          <span className="brand-mark"><Instagram size={19} /></span>
-          <span>instagram<span className="brand-light">_city</span></span>
-        </a>
-        <div className="city-stats">
-          <div className="stat"><Users size={16}/><strong>20</strong><span>жителей</span></div>
-          <div className="stat"><Building2 size={16}/><strong>8</strong><span>зданий</span></div>
-          <div className="stat online"><i/>город активен</div>
-        </div>
-      </header>
-      <aside className="welcome-card">
-        <span className="eyebrow"><MapPin size={13}/> ВАШ ВИРТУАЛЬНЫЙ ГОРОД</span>
-        <h1>Город начинается<br/>с одного жителя.</h1>
-        <p>Первые улицы Instagram City уже построены. Скоро здесь появится ваш персонаж.</p>
-        <div className="welcome-footer"><span><Trees size={15}/> Современный район</span><span>Сезон 01</span></div>
-      </aside>
-      <div className="map-hint"><Maximize2 size={14}/> Перетаскивайте карту · Колесо мыши — масштаб</div>
-      <div className="bottom-pill"><span className="pulse"/> Первый район · Центральная площадь</div>
-    </main>
-  );
+  return <main className="app-shell">
+    <Canvas shadows dpr={[1,1.5]} gl={{antialias:true,powerPreference:'high-performance'}}>
+      <Scene/>
+    </Canvas>
+    <header className="topbar">
+      <a className="brand" href="#" aria-label="Instagram City home"><span className="brand-mark"><Instagram size={19}/></span><span>instagram<span className="brand-light">_city</span></span></a>
+      <div className="city-stats">
+        <div className="stat"><Users size={16}/><strong>20</strong><span>жителей</span></div>
+        <div className="stat"><Building2 size={16}/><strong>8</strong><span>зданий</span></div>
+        <div className="stat online"><i/>город активен</div>
+      </div>
+    </header>
+    <aside className="welcome-card">
+      <span className="eyebrow"><MapPin size={13}/> ВАШ ВИРТУАЛЬНЫЙ ГОРОД</span>
+      <h1>Город начинается<br/>с одного жителя.</h1>
+      <p>Первые улицы Instagram City уже построены. Скоро здесь появится ваш персонаж.</p>
+      <div className="welcome-footer"><span><Trees size={15}/> Современный район</span><span>Сезон 01</span></div>
+    </aside>
+    <div className="map-hint"><Maximize2 size={14}/> Перетаскивайте карту · Колесо мыши — масштаб</div>
+    <div className="bottom-pill"><span className="pulse"/> Первый район · Центральная площадь</div>
+  </main>;
 }
