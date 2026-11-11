@@ -140,7 +140,7 @@ function Scene() {
   return <>
     <color attach="background" args={['#b9dfec']}/>
     <ambientLight intensity={1.15}/>
-    <hemisphereLight args={['#e8f8ff','#668c55',.8}/>
+    <hemisphereLight args={['#e8f8ff','#668c55',.8]}/>
     <directionalLight position={[-25,38,18]} intensity={2.3} castShadow shadow-mapSize={[2048,2048]}/>
     <OrthographicCamera makeDefault position={[48,57,48]} zoom={11.8} near={.1} far={250}/>
     <OrbitControls enableRotate maxPolarAngle={Math.PI/2.15} minPolarAngle={Math.PI/5} enablePan minDistance={35} maxDistance={120} minZoom={7} maxZoom={20}/>
