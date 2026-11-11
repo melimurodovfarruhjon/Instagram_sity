@@ -6,7 +6,7 @@ import * as THREE from 'three';
 
 function terrainHeight(x,z) {
   const hill=(cx,cz,rx,rz,h)=>h*Math.exp(-(((x-cx)/rx)**2+((z-cz)/rz)**2));
-  return .15
+  const rolling = .15
     + hill(-24,-18,17,14,5.8)
     + hill(19,-25,19,16,7.2)
     + hill(25,17,18,15,5.2)
@@ -14,6 +14,9 @@ function terrainHeight(x,z) {
     + hill(0,0,28,24,1.15)
     + Math.sin(x*.12+z*.07)*.32
     + Math.cos(z*.16-x*.045)*.24;
+  const distance = Math.max(Math.abs(x), Math.abs(z));
+  const plazaBlend = 1 - THREE.MathUtils.smoothstep(distance, 19, 25);
+  return THREE.MathUtils.lerp(rolling, .18, plazaBlend);
 }
 
 function Terrain() {
@@ -109,13 +112,41 @@ function GrassTuft({x,z,scale=1}) {
   </group>;
 }
 
+function GrandPlaza() {
+  const tileLines = Array.from({length:17},(_,i)=>-20+i*2.5);
+  return <group position={[0,.205,0]}>
+    <mesh receiveShadow>
+      <boxGeometry args={[43,.28,43]}/>
+      <meshStandardMaterial color="#d8d5c4" roughness={1}/>
+    </mesh>
+    <mesh position={[0,.151,0]} receiveShadow>
+      <boxGeometry args={[42.5,.035,42.5]}/>
+      <meshStandardMaterial color="#e8e3d2" roughness={1}/>
+    </mesh>
+    {tileLines.map((v,i)=><group key={i}>
+      <mesh position={[v,.174,0]}>
+        <boxGeometry args={[.045,.012,42]}/>
+        <meshStandardMaterial color="#c9c8b8"/>
+      </mesh>
+      <mesh position={[0,.174,v]}>
+        <boxGeometry args={[42,.012,.045]}/>
+        <meshStandardMaterial color="#c9c8b8"/>
+      </mesh>
+    </group>)}
+    <mesh position={[0,.19,0]}>
+      <boxGeometry args={[7,.025,7]}/>
+      <meshStandardMaterial color="#b8d1bd"/>
+    </mesh>
+  </group>;
+}
+
 function Nature() {
   const trees=useMemo(()=>[
     [-38,-30,.95,0],[-30,-35,1.2,1],[-20,-31,.85,2],[-8,-38,1.1,0],[8,-34,.9,3],[24,-37,1.15,1],[38,-27,1,2],
-    [-42,-12,1.2,3],[-31,-8,.9,0],[-22,5,1.25,1],[-38,17,1.1,2],[-29,31,1.15,0],[-14,36,.9,3],
+    [-42,-12,1.2,3],[-31,-8,.9,0],[-38,17,1.1,2],[-29,31,1.15,0],[-14,36,.9,3],
     [2,29,1.2,1],[17,35,1.05,2],[32,27,1.2,0],[42,12,.95,3],[35,-4,1.2,1],[25,8,.85,2],
-    [8,-12,.85,0],[-7,-18,1.1,2],[15,-20,1.2,3],[-43,36,.95,1],[43,38,1.1,0],
-    [-5,8,.82,3],[4,15,.9,1],[20,18,.95,2]
+    [8,-42,.85,0],[-7,-43,1.1,2],[15,-42,1.2,3],[-43,36,.95,1],[43,38,1.1,0],
+    [-5,43,.82,3],[4,44,.9,1],[20,42,.95,2]
   ],[]);
   const bushes=useMemo(()=>[
     [-34,-20],[-25,-18],[-12,-28],[1,-30],[17,-29],[30,-18],[39,-12],
@@ -129,6 +160,7 @@ function Nature() {
   }),[]);
   return <group>
     <Terrain/>
+    <GrandPlaza/>
     {trees.map(([x,z,s,v],i)=><Tree key={'tree'+i} x={x} z={z} scale={s} variant={v}/>)}
     {bushes.map(([x,z],i)=><Bush key={'bush'+i} x={x} z={z} scale={.7+(i%3)*.18}/>)}
     {flowers.map(([x,z],i)=><FlowerPatch key={'flower'+i} x={x} z={z}/>)}
@@ -153,10 +185,5 @@ export default function App() {
     <Canvas shadows dpr={[1,1.5]} gl={{antialias:true,powerPreference:'high-performance'}}>
       <Scene/>
     </Canvas>
-    <header className="topbar">
-      <a className="brand" href="#" aria-label="Instagram City home"><span className="brand-mark"><Instagram size={19}/></span><span>instagram<span className="brand-light">_city</span></span></a>
-      <div className="city-stats"><div className="stat"><Users size={16}/><strong>20</strong><span>жителей</span></div></div>
-    </header>
-    <div className="bottom-pill"><span className="pulse"/> Зелёная долина · Природная зона</div>
   </main>;
 }
