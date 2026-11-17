@@ -6,26 +6,24 @@ import * as THREE from 'three';
 
 function terrainHeight(x,z) {
   const hill=(cx,cz,rx,rz,h)=>h*Math.exp(-(((x-cx)/rx)**2+((z-cz)/rz)**2));
-  const rolling = .2
-    + hill(-30,-29,25,23,9.4)
-    + hill(29,-31,27,24,10.2)
-    + hill(31,28,25,23,9.1)
-    + hill(-30,31,27,24,8.7)
-    + hill(0,-43,32,17,4.3)
-    + hill(43,0,17,32,4.5)
-    + hill(0,43,32,17,4.1)
-    + hill(-43,0,17,32,3.9)
-    + hill(0,0,31,28,.75)
-    + Math.sin(x*.1+z*.065)*.24
-    + Math.cos(z*.13-x*.04)*.2;
-  const distance = Math.max(Math.abs(x), Math.abs(z));
-  const plazaBlend = 1 - THREE.MathUtils.smoothstep(distance, 19, 25);
-  return THREE.MathUtils.lerp(rolling, .18, plazaBlend);
+  return .2
+    + hill(-34,-37,30,25,11.2)
+    + hill(17,-49,24,30,9.8)
+    + hill(49,-13,20,31,8.4)
+    + hill(29,35,31,25,12.1)
+    + hill(-21,45,27,30,9.3)
+    + hill(-53,9,21,26,10.4)
+    + hill(4,55,30,18,6.2)
+    + hill(-5,-9,28,24,2.8)
+    + hill(38,56,18,13,4.1)
+    + Math.sin(x*.1+z*.065)*.3
+    + Math.cos(z*.13-x*.04)*.24
+    + Math.sin((x+z)*.035)*.7;
 }
 
 function Terrain() {
   const geometry=useMemo(()=>{
-    const geo=new THREE.PlaneGeometry(100,100,150,150);
+    const geo=new THREE.PlaneGeometry(140,140,190,190);
     const p=geo.attributes.position;
     const colors=[];
     const low=new THREE.Color('#83bd70');
@@ -136,46 +134,23 @@ function GrassTuft({x,z,scale=1}) {
   </group>;
 }
 
-function GrandPlaza() {
-  const tileLines = Array.from({length:17},(_,i)=>-20+i*2.5);
-  return <group position={[0,.205,0]}>
-    <mesh receiveShadow>
-      <boxGeometry args={[43,.28,43]}/>
-      <meshStandardMaterial color="#d8d5c4" roughness={1}/>
-    </mesh>
-    <mesh position={[0,.151,0]} receiveShadow>
-      <boxGeometry args={[42.5,.035,42.5]}/>
-      <meshStandardMaterial color="#e8e3d2" roughness={1}/>
-    </mesh>
-    {tileLines.map((v,i)=><group key={i}>
-      <mesh position={[v,.174,0]}>
-        <boxGeometry args={[.045,.012,42]}/>
-        <meshStandardMaterial color="#c9c8b8"/>
-      </mesh>
-      <mesh position={[0,.174,v]}>
-        <boxGeometry args={[42,.012,.045]}/>
-        <meshStandardMaterial color="#c9c8b8"/>
-      </mesh>
-    </group>)}
-    <mesh position={[0,.19,0]}>
-      <boxGeometry args={[7,.025,7]}/>
-      <meshStandardMaterial color="#b8d1bd"/>
-    </mesh>
-  </group>;
-}
-
 function Nature() {
   const trees=useMemo(()=>[
     [-38,-30,.95,0],[-30,-35,1.2,1],[-20,-31,.85,2],[-8,-38,1.1,0],[8,-34,.9,3],[24,-37,1.15,1],[38,-27,1,2],
     [-42,-12,1.2,3],[-31,-8,.9,0],[-38,17,1.1,2],[-29,31,1.15,0],[-14,36,.9,3],
     [2,29,1.2,1],[17,35,1.05,2],[32,27,1.2,0],[42,12,.95,3],[35,-4,1.2,1],[25,8,.85,2],
     [8,-42,.85,0],[-7,-43,1.1,2],[15,-42,1.2,3],[-43,36,.95,1],[43,38,1.1,0],
-    [-5,43,.82,3],[4,44,.9,1],[20,42,.95,2]
+    [-5,43,.82,3],[4,44,.9,1],[20,42,.95,2],
+    [-55,-48,1.15,1],[-42,-57,.9,3],[-18,-59,1.2,0],[12,-61,.95,2],[43,-52,1.1,3],
+    [59,-29,.95,0],[61,4,1.2,2],[54,39,1.05,1],[32,58,.9,3],[5,62,1.15,0],
+    [-27,57,1.05,2],[-57,38,.9,1],[-62,5,1.1,3],[-57,-20,.85,0]
   ],[]);
   const stones=useMemo(()=>[
     [-39,-26,.9,0],[-24,-39,1.15,2],[-8,-42,.75,1],[13,-43,1.05,3],[34,-35,1.2,0],
     [42,-17,.85,1],[39,7,1.1,2],[41,31,1.2,3],[24,41,.9,0],[2,40,1.1,2],
-    [-21,42,1.25,1],[-40,34,.9,3],[-43,8,1.1,0],[-34,-4,.7,2]
+    [-21,42,1.25,1],[-40,34,.9,3],[-43,8,1.1,0],[-34,-4,.7,2],
+    [-61,-44,1.15,2],[-37,-62,.9,0],[2,-57,1.2,3],[55,-48,.85,1],
+    [63,-4,1.05,0],[48,55,1.1,2],[12,64,.8,3],[-32,60,1.25,1],[-62,27,.95,2]
   ],[]);
   const bushes=useMemo(()=>[
     [-34,-20],[-25,-18],[-12,-28],[1,-30],[17,-29],[30,-18],[39,-12],
@@ -183,13 +158,12 @@ function Nature() {
     [-35,30],[5,-4],[29,2],[-14,-8]
   ],[]);
   const flowers=useMemo(()=>[[-32,-25],[-17,-34],[12,-37],[34,-28],[-40,22],[-22,28],[-4,34],[20,30],[39,9],[1,-16]],[]);
-  const tufts=useMemo(()=>Array.from({length:100},(_,i)=>{
-    const x=((i*37)%91)-45, z=((i*53)%91)-45;
+  const tufts=useMemo(()=>Array.from({length:180},(_,i)=>{
+    const x=((i*53)%127)-63, z=((i*71)%127)-63;
     return [x,z,.55+(i%5)*.16];
   }),[]);
   return <group>
     <Terrain/>
-    <GrandPlaza/>
     {trees.map(([x,z,s,v],i)=><Tree key={'tree'+i} x={x} z={z} scale={s} variant={v}/>)}
     {stones.map(([x,z,s,v],i)=><StoneCluster key={'stone'+i} x={x} z={z} scale={s} variant={v}/>)}
     {bushes.map(([x,z],i)=><Bush key={'bush'+i} x={x} z={z} scale={.7+(i%3)*.18}/>)}
@@ -204,7 +178,7 @@ function Scene() {
     <ambientLight intensity={1.15}/>
     <hemisphereLight args={['#e8f8ff','#668c55',.8]}/>
     <directionalLight position={[-25,38,18]} intensity={2.3} castShadow shadow-mapSize={[2048,2048]}/>
-    <OrthographicCamera makeDefault position={[48,57,48]} zoom={11.8} near={.1} far={250}/>
+    <OrthographicCamera makeDefault position={[48,57,48]} zoom={10.2} near={.1} far={300}/>
     <OrbitControls enableRotate maxPolarAngle={Math.PI/2.15} minPolarAngle={Math.PI/5} enablePan minDistance={35} maxDistance={120} minZoom={7} maxZoom={20}/>
     <Nature/>
   </>;
