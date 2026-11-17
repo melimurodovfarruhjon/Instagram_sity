@@ -14,7 +14,9 @@ function terrainHeight(x,z) {
     + hill(-21,45,27,30,9.3)
     + hill(-53,9,21,26,10.4)
     + hill(4,55,30,18,6.2)
-    + hill(-5,-9,28,24,2.8)
+    + hill(0,0,39,35,5.4)
+    + hill(-9,13,19,17,1.25)
+    + hill(16,-7,16,23,1.55)
     + hill(38,56,18,13,4.1)
     + Math.sin(x*.1+z*.065)*.3
     + Math.cos(z*.13-x*.04)*.24
@@ -179,7 +181,26 @@ function Scene() {
     <hemisphereLight args={['#e8f8ff','#668c55',.8]}/>
     <directionalLight position={[-25,38,18]} intensity={2.3} castShadow shadow-mapSize={[2048,2048]}/>
     <OrthographicCamera makeDefault position={[48,57,48]} zoom={10.2} near={.1} far={300}/>
-    <OrbitControls enableRotate maxPolarAngle={Math.PI/2.15} minPolarAngle={Math.PI/5} enablePan minDistance={35} maxDistance={120} minZoom={7} maxZoom={20}/>
+    <OrbitControls
+      enableRotate
+      enablePan
+      enableZoom
+      enableDamping
+      dampingFactor={0.08}
+      screenSpacePanning
+      zoomToCursor
+      panSpeed={1.7}
+      rotateSpeed={0.75}
+      zoomSpeed={1.15}
+      mouseButtons={{ LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE }}
+      touches={{ ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE }}
+      maxPolarAngle={Math.PI/2.15}
+      minPolarAngle={Math.PI/5}
+      minDistance={30}
+      maxDistance={140}
+      minZoom={6}
+      maxZoom={22}
+    />
     <Nature/>
   </>;
 }
