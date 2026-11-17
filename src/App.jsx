@@ -6,14 +6,18 @@ import * as THREE from 'three';
 
 function terrainHeight(x,z) {
   const hill=(cx,cz,rx,rz,h)=>h*Math.exp(-(((x-cx)/rx)**2+((z-cz)/rz)**2));
-  const rolling = .15
-    + hill(-24,-18,17,14,5.8)
-    + hill(19,-25,19,16,7.2)
-    + hill(25,17,18,15,5.2)
-    + hill(-18,25,20,17,4.5)
-    + hill(0,0,28,24,1.15)
-    + Math.sin(x*.12+z*.07)*.32
-    + Math.cos(z*.16-x*.045)*.24;
+  const rolling = .2
+    + hill(-30,-29,25,23,9.4)
+    + hill(29,-31,27,24,10.2)
+    + hill(31,28,25,23,9.1)
+    + hill(-30,31,27,24,8.7)
+    + hill(0,-43,32,17,4.3)
+    + hill(43,0,17,32,4.5)
+    + hill(0,43,32,17,4.1)
+    + hill(-43,0,17,32,3.9)
+    + hill(0,0,31,28,.75)
+    + Math.sin(x*.1+z*.065)*.24
+    + Math.cos(z*.13-x*.04)*.2;
   const distance = Math.max(Math.abs(x), Math.abs(z));
   const plazaBlend = 1 - THREE.MathUtils.smoothstep(distance, 19, 25);
   return THREE.MathUtils.lerp(rolling, .18, plazaBlend);
@@ -47,10 +51,10 @@ function Terrain() {
 }
 
 const treePalette=[
-  ['#367c4c','#4b9858','#6eae68'],
-  ['#397f58','#579e68','#83bd79'],
-  ['#477f43','#6ba34e','#94bd64'],
-  ['#34775b','#4b9369','#77b47c']
+  ['#2f8748','#55ae54','#83c75a'],
+  ['#318b61','#55b875','#91cf78'],
+  ['#508e38','#79b94b','#a8d75e'],
+  ['#267f67','#49ad7d','#87cc87']
 ];
 
 function Tree({x,z,scale=1,variant=0}) {
@@ -58,24 +62,20 @@ function Tree({x,z,scale=1,variant=0}) {
   const colors=treePalette[variant%treePalette.length];
   const canopy=variant%2===0;
   return <group position={[x,y,z]} scale={scale}>
-    <mesh position={[0,.9,0]} castShadow>
-      <cylinderGeometry args={[.17,.28,1.8,7]}/>
-      <meshStandardMaterial color="#79533a" roughness={1}/>
+    <mesh position={[0,.82,0]} castShadow>
+      <cylinderGeometry args={[.22,.34,1.65,7]}/>
+      <meshStandardMaterial color="#805035" roughness={1}/>
     </mesh>
-    {[[-.35,1.5,0,.11],[.35,1.65,.05,.1],[-.12,2,.18,.09],[.2,2.15,-.1,.08]].map(([bx,by,bz,r],i)=>
-      <mesh key={i} position={[bx,by,bz]} rotation-z={(i%2?-.55:.55)}>
-        <cylinderGeometry args={[r,.13,.85,6]}/><meshStandardMaterial color="#805a3e"/>
-      </mesh>
-    )}
     {canopy ? <>
-      <mesh position={[0,2.75,0]} castShadow><icosahedronGeometry args={[1.35,2]}/><meshStandardMaterial color={colors[1]} flatShading roughness={1}/></mesh>
-      <mesh position={[-.72,2.45,.12]} castShadow><icosahedronGeometry args={[.85,1]}/><meshStandardMaterial color={colors[0]} flatShading/></mesh>
-      <mesh position={[.72,2.48,-.08]} castShadow><icosahedronGeometry args={[.9,1]}/><meshStandardMaterial color={colors[2]} flatShading/></mesh>
-      <mesh position={[.05,3.45,.15]} castShadow><icosahedronGeometry args={[.72,1]}/><meshStandardMaterial color={colors[2]} flatShading/></mesh>
+      <mesh position={[0,2.25,0]} castShadow><icosahedronGeometry args={[1.48,1]}/><meshStandardMaterial color={colors[1]} flatShading roughness={1}/></mesh>
+      <mesh position={[-.88,2.2,.18]} castShadow><icosahedronGeometry args={[1.02,1]}/><meshStandardMaterial color={colors[0]} flatShading/></mesh>
+      <mesh position={[.9,2.25,-.12]} castShadow><icosahedronGeometry args={[1.05,1]}/><meshStandardMaterial color={colors[2]} flatShading/></mesh>
+      <mesh position={[-.1,3.05,.12]} castShadow><icosahedronGeometry args={[.9,1]}/><meshStandardMaterial color={colors[2]} flatShading/></mesh>
+      <mesh position={[.12,1.75,.82]} castShadow><icosahedronGeometry args={[.75,1]}/><meshStandardMaterial color={colors[0]} flatShading/></mesh>
     </> : <>
-      <mesh position={[0,2.55,0]} castShadow><coneGeometry args={[1.12,1.8,8]}/><meshStandardMaterial color={colors[1]} flatShading/></mesh>
-      <mesh position={[0,3.35,0]} castShadow><coneGeometry args={[.82,1.55,8]}/><meshStandardMaterial color={colors[2]} flatShading/></mesh>
-      <mesh position={[0,4.05,0]} castShadow><coneGeometry args={[.52,1.15,8]}/><meshStandardMaterial color={colors[0]} flatShading/></mesh>
+      <mesh position={[0,1.95,0]} castShadow><coneGeometry args={[1.2,1.8,8]}/><meshStandardMaterial color={colors[1]} flatShading/></mesh>
+      <mesh position={[0,2.8,0]} castShadow><coneGeometry args={[.92,1.7,8]}/><meshStandardMaterial color={colors[2]} flatShading/></mesh>
+      <mesh position={[0,3.55,0]} castShadow><coneGeometry args={[.65,1.4,8]}/><meshStandardMaterial color={colors[0]} flatShading/></mesh>
     </>}
   </group>;
 }
@@ -86,6 +86,30 @@ function Bush({x,z,scale=1,color='#5b9d5e'}) {
     {[[0,.35,0],[-.35,.25,.08],[.3,.28,-.1],[.08,.48,.18]].map(([a,b,c],i)=>
       <mesh key={i} position={[a,b,c]} castShadow><dodecahedronGeometry args={[.42,1]}/><meshStandardMaterial color={i%2?color:'#75b96d'} flatShading/></mesh>
     )}
+  </group>;
+}
+
+function StoneCluster({x,z,scale=1,variant=0}) {
+  const y=terrainHeight(x,z);
+  const stonePalette=['#8f9ba0','#a9a79b','#87929f','#b3aa96'];
+  const color=stonePalette[variant%stonePalette.length];
+  return <group position={[x,y,z]} scale={scale}>
+    <mesh position={[0,.42,0]} rotation={[.08,.18,-.06]} castShadow receiveShadow>
+      <dodecahedronGeometry args={[.82,0]}/>
+      <meshStandardMaterial color={color} flatShading roughness={1}/>
+    </mesh>
+    <mesh position={[-.62,.27,.18]} rotation={[.12,-.3,.04]} castShadow receiveShadow>
+      <icosahedronGeometry args={[.48,0]}/>
+      <meshStandardMaterial color={color} flatShading roughness={1}/>
+    </mesh>
+    <mesh position={[.62,.24,-.16]} rotation={[-.08,.4,-.12]} castShadow receiveShadow>
+      <dodecahedronGeometry args={[.43,0]}/>
+      <meshStandardMaterial color={color} flatShading roughness={1}/>
+    </mesh>
+    <mesh position={[0,.12,0]} scale={[1.22,.22,.9]} receiveShadow>
+      <sphereGeometry args={[.85,7,5]}/>
+      <meshStandardMaterial color="#66774e" flatShading roughness={1}/>
+    </mesh>
   </group>;
 }
 
@@ -148,6 +172,11 @@ function Nature() {
     [8,-42,.85,0],[-7,-43,1.1,2],[15,-42,1.2,3],[-43,36,.95,1],[43,38,1.1,0],
     [-5,43,.82,3],[4,44,.9,1],[20,42,.95,2]
   ],[]);
+  const stones=useMemo(()=>[
+    [-39,-26,.9,0],[-24,-39,1.15,2],[-8,-42,.75,1],[13,-43,1.05,3],[34,-35,1.2,0],
+    [42,-17,.85,1],[39,7,1.1,2],[41,31,1.2,3],[24,41,.9,0],[2,40,1.1,2],
+    [-21,42,1.25,1],[-40,34,.9,3],[-43,8,1.1,0],[-34,-4,.7,2]
+  ],[]);
   const bushes=useMemo(()=>[
     [-34,-20],[-25,-18],[-12,-28],[1,-30],[17,-29],[30,-18],[39,-12],
     [-39,4],[-28,13],[-17,22],[-4,28],[12,26],[27,20],[39,22],
@@ -162,6 +191,7 @@ function Nature() {
     <Terrain/>
     <GrandPlaza/>
     {trees.map(([x,z,s,v],i)=><Tree key={'tree'+i} x={x} z={z} scale={s} variant={v}/>)}
+    {stones.map(([x,z,s,v],i)=><StoneCluster key={'stone'+i} x={x} z={z} scale={s} variant={v}/>)}
     {bushes.map(([x,z],i)=><Bush key={'bush'+i} x={x} z={z} scale={.7+(i%3)*.18}/>)}
     {flowers.map(([x,z],i)=><FlowerPatch key={'flower'+i} x={x} z={z}/>)}
     {tufts.map(([x,z,s],i)=><GrassTuft key={'grass'+i} x={x} z={z} scale={s}/>)}
