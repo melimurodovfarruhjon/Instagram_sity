@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useMemo, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas } from '@react-three/fiber';
 import { OrbitControls, OrthographicCamera } from '@react-three/drei';
 import { Instagram, Trees, Users } from 'lucide-react';
 import * as THREE from 'three';
@@ -7,27 +7,27 @@ import * as THREE from 'three';
 function terrainHeight(x,z) {
   const hill=(cx,cz,rx,rz,h)=>h*Math.exp(-(((x-cx)/rx)**2+((z-cz)/rz)**2));
   return .2
-    + hill(-34,-37,30,25,11.2)
-    + hill(17,-49,24,30,9.8)
-    + hill(49,-13,20,31,8.4)
-    + hill(29,35,31,25,12.1)
-    + hill(-21,45,27,30,9.3)
-    + hill(-53,9,21,26,10.4)
-    + hill(4,55,30,18,6.2)
-    + hill(0,0,39,35,5.4)
-    + hill(-9,13,19,17,1.25)
-    + hill(16,-7,16,23,1.55)
-    + hill(38,56,18,13,4.1)
-    + hill(-72,-58,25,28,7.8)
-    + hill(64,-76,23,24,9.2)
-    + hill(78,33,22,31,7.4)
-    + hill(35,77,32,20,6.5)
-    + hill(-61,72,29,22,8.1)
-    + hill(-82,8,21,23,5.6)
-    + hill(76,-8,22,26,6.8)
-    + Math.sin(x*.1+z*.065)*.3
-    + Math.cos(z*.13-x*.04)*.24
-    + Math.sin((x+z)*.035)*.7;
+    + hill(-34,-37,30,25,5.2)
+    + hill(17,-49,24,30,4.4)
+    + hill(49,-13,20,31,3.8)
+    + hill(29,35,31,25,5.4)
+    + hill(-21,45,27,30,4)
+    + hill(-53,9,21,26,4.6)
+    + hill(4,55,30,18,2.7)
+    + hill(0,0,39,35,2.3)
+    + hill(-9,13,19,17,.55)
+    + hill(16,-7,16,23,.7)
+    + hill(38,56,18,13,2)
+    + hill(-72,-58,25,28,3.6)
+    + hill(64,-76,23,24,4.2)
+    + hill(78,33,22,31,3.3)
+    + hill(35,77,32,20,2.8)
+    + hill(-61,72,29,22,3.7)
+    + hill(-82,8,21,23,2.5)
+    + hill(76,-8,22,26,3.1)
+    + Math.sin(x*.1+z*.065)*.16
+    + Math.cos(z*.13-x*.04)*.12
+    + Math.sin((x+z)*.035)*.35;
 }
 
 function Terrain() {
@@ -35,16 +35,16 @@ function Terrain() {
     const geo=new THREE.PlaneGeometry(180,180,220,220);
     const p=geo.attributes.position;
     const colors=[];
-    const low=new THREE.Color('#83bd70');
-    const mid=new THREE.Color('#9bce7d');
-    const high=new THREE.Color('#b5d88b');
+    const low=new THREE.Color('#679b4a');
+    const mid=new THREE.Color('#7eaf51');
+    const high=new THREE.Color('#a1c65e');
     for(let i=0;i<p.count;i++){
       const x=p.getX(i), z=-p.getY(i);
       const y=terrainHeight(x,z);
       p.setZ(i,y);
       const t=THREE.MathUtils.clamp((y-.2)/7,0,1);
       const c=low.clone().lerp(mid,Math.min(t*2,1)).lerp(high,Math.max(0,t-.55)*.55);
-      const variation=(Math.sin(x*1.7+z*.8)*.012);
+      const variation=Math.sin(x*.55+Math.cos(z*.21))*.018+Math.sin(z*.43-x*.37)*.012+Math.cos((x+z)*.18)*.008;
       c.offsetHSL(0,0,variation);
       colors.push(c.r,c.g,c.b);
     }
@@ -190,70 +190,101 @@ function GrassField() {
   </instancedMesh>;
 }
 
-function CabinWindow({position}) {
-  return <group position={position}>
-    <mesh position={[0,0,-.04]} castShadow><boxGeometry args={[2.65,2.85,.28]}/><meshStandardMaterial color="#68402d" roughness={1}/></mesh>
-    <mesh position={[0,0,.13]}><boxGeometry args={[2.12,2.28,.12]}/><meshStandardMaterial color="#ffd982" emissive="#f4a83b" emissiveIntensity={.8} roughness={.35}/></mesh>
-    {[-.52,.52].map(x=><mesh key={'v'+x} position={[x,0,.22]}><boxGeometry args={[.12,2.28,.12]}/><meshStandardMaterial color="#8a5534" roughness={1}/></mesh>)}
-    <mesh position={[0,0,.23]}><boxGeometry args={[2.12,.13,.12]}/><meshStandardMaterial color="#8a5534" roughness={1}/></mesh>
-    {[-1,1].map(side=><mesh key={'s'+side} position={[side*1.48,0,.12]}><boxGeometry args={[.36,2.65,.25]}/><meshStandardMaterial color={side<0?'#b27643':'#d49450'} roughness={1}/></mesh>)}
-    <mesh position={[0,-1.48,.2]}><boxGeometry args={[2.95,.28,.55]}/><meshStandardMaterial color="#805039" roughness={1}/></mesh>
-    <mesh position={[0,1.48,.18]}><boxGeometry args={[2.95,.24,.42]}/><meshStandardMaterial color="#805039" roughness={1}/></mesh>
+function OfficeGlassPanel({position,rotationY=0,width=2.8,height=3.35}) {
+  return <group position={position} rotation-y={rotationY}>
+    <mesh position={[0,0,-.02]} castShadow>
+      <boxGeometry args={[width-.16,height-.16,.12]}/>
+      <meshStandardMaterial color="#65b8ca" metalness={.42} roughness={.18} emissive="#174653" emissiveIntensity={.16} transparent opacity={.86}/>
+    </mesh>
+    {[-width/2,width/2].map(x=><mesh key={'edge'+x} position={[x,0,.08]}>
+      <boxGeometry args={[.12,height,.18]}/><meshStandardMaterial color="#d9e8e8" metalness={.72} roughness={.22}/>
+    </mesh>)}
+    {[-height/2,height/2].map(y=><mesh key={'rail'+y} position={[0,y,.08]}>
+      <boxGeometry args={[width,.12,.18]}/><meshStandardMaterial color="#d9e8e8" metalness={.72} roughness={.22}/>
+    </mesh>)}
+    <mesh position={[0,0,.09]}>
+      <boxGeometry args={[.09,height-.12,.18]}/><meshStandardMaterial color="#a9d3d8" metalness={.65} roughness={.24}/>
+    </mesh>
   </group>;
 }
 
-function ChimneySmoke() {
-  const smokeRef=useRef();
-  useFrame(({clock})=>{
-    const puffs=smokeRef.current?.children;
-    if(!puffs)return;
-    const time=clock.getElapsedTime();
-    puffs.forEach((puff,index)=>{
-      const phase=(time*.22+index*.28)%1;
-      puff.position.set(Math.sin(time*.8+index)*.16,.25+phase*2.4,0);
-      puff.scale.setScalar(.16+phase*.32);
-      puff.material.opacity=(1-phase)*.34;
-    });
-  });
-  return <group ref={smokeRef} position={[3.65,11.2,-1.45]}>
-    {[0,1,2,3].map(index=><mesh key={index}><sphereGeometry args={[1,8,6]}/><meshBasicMaterial color="#f3f2e8" transparent opacity={.25} depthWrite={false}/></mesh>)}
+function OfficeBalconyRail({x}) {
+  return <group position={[x,5.45,10.45]}>
+    <mesh><boxGeometry args={[2.85,1.05,.14]}/><meshStandardMaterial color="#74c7d1" metalness={.36} roughness={.2} transparent opacity={.58}/></mesh>
+    <mesh position={[0,.55,0]}><boxGeometry args={[2.9,.12,.2]}/><meshStandardMaterial color="#dce9e8" metalness={.75} roughness={.2}/></mesh>
+    {[-1.38,1.38].map(side=><mesh key={side} position={[side,0,0]}><boxGeometry args={[.1,1.15,.22]}/><meshStandardMaterial color="#dce9e8" metalness={.75} roughness={.2}/></mesh>)}
   </group>;
 }
 
-function MainCabin() {
+function MainOffice() {
   const baseY=terrainHeight(0,0);
-  const gableGeometry=useMemo(()=>{
-    const shape=new THREE.Shape();
-    shape.moveTo(-6.5,0);shape.lineTo(0,3.5);shape.lineTo(6.5,0);shape.closePath();
-    return new THREE.ShapeGeometry(shape);
-  },[]);
-  const pathTiles=Array.from({length:7},(_,i)=>{
-    const z=8+i*1.45;
-    return [0,terrainHeight(0,z)-baseY,z];
+  const steps=Array.from({length:6},(_,i)=>{
+    const z=9+i*1.65;
+    return [terrainHeight(0,z)-baseY,z];
   });
+  const lowerFront=[-7.1,-4.2,4.2,7.1];
+  const upperFront=[-7.1,-4.2,4.2,7.1];
+  const sides=[-5.1,-1.7,1.7,5.1];
   return <group position={[0,baseY,0]}>
-    <mesh position={[0,.35,0]} receiveShadow castShadow><boxGeometry args={[14.4,.7,12.4]}/><meshStandardMaterial color="#75634c" flatShading roughness={1}/></mesh>
-    <mesh position={[0,3.55,0]} castShadow receiveShadow><boxGeometry args={[13,6.4,11]}/><meshStandardMaterial color="#bd7a3e" roughness={1}/></mesh>
-    <mesh geometry={gableGeometry} position={[0,6.75,5.52]} castShadow><meshStandardMaterial color="#cc8b4a" side={THREE.DoubleSide} roughness={1}/></mesh>
-    <mesh geometry={gableGeometry} position={[0,6.75,-5.52]} rotation-y={Math.PI} castShadow><meshStandardMaterial color="#a96539" side={THREE.DoubleSide} roughness={1}/></mesh>
-    {[-6.35,6.35].map(x=><mesh key={'post'+x} position={[x,3.6,5.62]} castShadow><boxGeometry args={[.34,6.5,.38]}/><meshStandardMaterial color="#714329" roughness={1}/></mesh>)}
-    {[.62,5.95].map(y=><mesh key={'beam'+y} position={[0,y,5.62]} castShadow><boxGeometry args={[13,.28,.38]}/><meshStandardMaterial color="#85512f" roughness={1}/></mesh>)}
-    <CabinWindow position={[-3.55,3.55,5.66]}/>
-    <CabinWindow position={[3.55,3.55,5.66]}/>
-    <mesh position={[0,1.95,5.72]} castShadow><boxGeometry args={[2.3,3.65,.32]}/><meshStandardMaterial color="#784327" roughness={1}/></mesh>
-    {[-1.25,1.25].map(x=><mesh key={'doorframe'+x} position={[x,1.95,5.93]}><boxGeometry args={[.22,3.9,.3]}/><meshStandardMaterial color="#e3ad61" roughness={1}/></mesh>)}
-    <mesh position={[0,3.93,5.93]}><boxGeometry args={[2.7,.24,.3]}/><meshStandardMaterial color="#e3ad61" roughness={1}/></mesh>
-    <mesh position={[0,1.9,5.91]}><boxGeometry args={[1.74,2.95,.12]}/><meshStandardMaterial color="#986039" roughness={1}/></mesh>
-    <mesh position={[.68,1.95,6.02]}><sphereGeometry args={[.13,8,6]}/><meshStandardMaterial color="#f2c86f" metalness={.35} roughness={.4}/></mesh>
-    {[-6.35,6.35].map(x=><mesh key={'sidebeam'+x} position={[x,3.6,0]} castShadow><boxGeometry args={[.3,6.3,11.2]}/><meshStandardMaterial color="#82502f" roughness={1}/></mesh>)}
-    <mesh position={[-3.45,8.55,0]} rotation-z={.49} castShadow><boxGeometry args={[8.1,.58,12]}/><meshStandardMaterial color="#743d32" roughness={1}/></mesh>
-    <mesh position={[3.45,8.55,0]} rotation-z={-.49} castShadow><boxGeometry args={[8.1,.58,12]}/><meshStandardMaterial color="#864638" roughness={1}/></mesh>
-    <mesh position={[0,10.2,0]} castShadow><boxGeometry args={[.45,.36,12.25]}/><meshStandardMaterial color="#56352c" roughness={1}/></mesh>
-    {[-1,1].map(side=><mesh key={'eave'+side} position={[0,6.72,side*5.7]} castShadow><boxGeometry args={[14,.42,.42]}/><meshStandardMaterial color="#5b382d" roughness={1}/></mesh>)}
-    <mesh position={[3.65,9.1,-1.45]} castShadow><boxGeometry args={[1.35,3.1,1.45]}/><meshStandardMaterial color="#a8583d" flatShading roughness={1}/></mesh>
-    <mesh position={[3.65,10.72,-1.45]} castShadow><boxGeometry args={[1.7,.35,1.8]}/><meshStandardMaterial color="#713d33" flatShading roughness={1}/></mesh>
-    <ChimneySmoke/>
-    {pathTiles.map(([x,y,z],index)=><mesh key={'path'+index} position={[x,y+.12,z]} rotation-y={(index%2?-.18:.12)} receiveShadow><boxGeometry args={[1.35,.22,1.05]}/><meshStandardMaterial color={index%2?'#b6a892':'#c9b99e'} flatShading roughness={1}/></mesh>)}
+    <mesh position={[0,.28,0]} receiveShadow castShadow>
+      <boxGeometry args={[21,.56,16.3]}/><meshStandardMaterial color="#89979a" roughness={.82}/>
+    </mesh>
+    <mesh position={[0,2.38,0]} castShadow receiveShadow>
+      <boxGeometry args={[18,3.7,13.2]}/><meshStandardMaterial color="#203d49" metalness={.42} roughness={.28}/>
+    </mesh>
+    <mesh position={[0,6.35,0]} castShadow receiveShadow>
+      <boxGeometry args={[19.4,3.8,14.2]}/><meshStandardMaterial color="#244451" metalness={.46} roughness={.25}/>
+    </mesh>
+    {lowerFront.map((x,i)=><OfficeGlassPanel key={'lower'+i} position={[x,2.38,6.67]}/>)}
+    <OfficeGlassPanel position={[0,2.38,6.72]} width={3.1} height={3.45}/>
+    {upperFront.map((x,i)=><OfficeGlassPanel key={'upper'+i} position={[x,6.35,7.18]}/>)}
+    <OfficeGlassPanel position={[0,6.35,7.23]} width={3.2} height={3.5}/>
+    {sides.map((z,i)=><OfficeGlassPanel key={'left'+i} position={[-9.08,2.38,z]} rotationY={-Math.PI/2} width={3.05}/>)}
+    {sides.map((z,i)=><OfficeGlassPanel key={'right'+i} position={[9.08,2.38,z]} rotationY={Math.PI/2} width={3.05}/>)}
+    {sides.map((z,i)=><OfficeGlassPanel key={'upperleft'+i} position={[-9.82,6.35,z]} rotationY={-Math.PI/2} width={3.25}/>)}
+    {sides.map((z,i)=><OfficeGlassPanel key={'upperright'+i} position={[9.82,6.35,z]} rotationY={Math.PI/2} width={3.25}/>)}
+    <mesh position={[0,4.35,0]}><boxGeometry args={[19.8,.42,14.7]}/><meshStandardMaterial color="#d9e5e3" metalness={.6} roughness={.28}/></mesh>
+    {[-9.8,9.8].map(x=><mesh key={'fin'+x} position={[x,4.4,7.21]} castShadow>
+      <boxGeometry args={[.24,8.4,.34]}/><meshStandardMaterial color="#e3ece9" metalness={.75} roughness={.22}/>
+    </mesh>)}
+    <mesh position={[0,4.58,8.7]} castShadow receiveShadow>
+      <boxGeometry args={[12.8,.34,3.35]}/><meshStandardMaterial color="#d2dddd" metalness={.48} roughness={.3}/>
+    </mesh>
+    {[-4.55,-1.52,1.52,4.55].map(x=><OfficeBalconyRail key={'rail'+x} x={x}/>)}
+    {[-6.4,6.4].map(x=><mesh key={'sideRail'+x} position={[x,5.45,8.75]}>
+      <boxGeometry args={[.13,1.05,3.35]}/><meshStandardMaterial color="#cbd8d8" metalness={.72} roughness={.22}/>
+    </mesh>)}
+    <mesh position={[0,4.07,7.7]} castShadow>
+      <boxGeometry args={[7,.2,2.2]}/><meshStandardMaterial color="#243c47" metalness={.65} roughness={.25}/>
+    </mesh>
+    {[-2.8,2.8].map(x=><mesh key={'canopy'+x} position={[x,3.3,7.72]}>
+      <boxGeometry args={[.13,1.45,.13]}/><meshStandardMaterial color="#d8e4e2" metalness={.7} roughness={.25}/>
+    </mesh>)}
+    <mesh position={[0,8.45,0]} castShadow>
+      <boxGeometry args={[20.4,.62,15.1]}/><meshStandardMaterial color="#d8e1df" metalness={.62} roughness={.26}/>
+    </mesh>
+    <mesh position={[0,8.8,0]} castShadow>
+      <boxGeometry args={[18.8,.16,13.6]}/><meshStandardMaterial color="#2f5963" metalness={.6} roughness={.3}/>
+    </mesh>
+    {[-5.4,-1.8,1.8,5.4].map(x=><group key={'solar'+x} position={[x,8.97,-1.8]} rotation-x={-.12}>
+      <mesh><boxGeometry args={[3.15,.1,3.4]}/><meshStandardMaterial color="#264c69" metalness={.55} roughness={.22}/></mesh>
+      {[ -1,0,1 ].map(v=><mesh key={v} position={[v, .06,0]}><boxGeometry args={[.035,.025,3.35]}/><meshStandardMaterial color="#a9d6e4" metalness={.5} roughness={.25}/></mesh>)}
+      <mesh position={[0,.06,0]}><boxGeometry args={[3.1,.025,.04]}/><meshStandardMaterial color="#a9d6e4" metalness={.5} roughness={.25}/></mesh>
+    </group>)}
+    {[-1,1].map(side=><mesh key={'balconyLight'+side} position={[side*5.85,6.1,10.52]}>
+      <boxGeometry args={[.18,.24,.18]}/><meshStandardMaterial color="#d7f5e9" emissive="#8ce0ce" emissiveIntensity={1.2}/>
+    </mesh>)}
+    {steps.map(([y,z],i)=><mesh key={'step'+i} position={[0,y+.11,z]} rotation-y={(i%2?-.04:.04)} receiveShadow>
+      <boxGeometry args={[2.15,.2,1.35]}/><meshStandardMaterial color={i%2?'#bac7c6':'#d4dcdc'} roughness={.65}/>
+    </mesh>)}
+    {[-7,7].map(x=><mesh key={'planter'+x} position={[x,0,8.5]}>
+      <boxGeometry args={[2.2,.8,1.6]}/><meshStandardMaterial color="#536b66" roughness={.8}/>
+    </mesh>)}
+    {[-7,7].map(x=><group key={'plant'+x} position={[x,0,8.5]}>
+      {[-.55,0,.55].map((v,i)=><mesh key={i} position={[v,1.1,i%2?.1:-.1]}>
+        <icosahedronGeometry args={[.55,1]}/><meshStandardMaterial color={i%2?'#6aa56f':'#82b676'} flatShading roughness={1}/>
+      </mesh>)}
+    </group>)}
   </group>;
 }
 
@@ -299,9 +330,9 @@ function Nature() {
 function Scene() {
   return <>
     <color attach="background" args={['#b9dfec']}/>
-    <ambientLight intensity={1.15}/>
-    <hemisphereLight args={['#e8f8ff','#668c55',.8]}/>
-    <directionalLight position={[-25,38,18]} intensity={2.3} castShadow shadow-mapSize={[2048,2048]}/>
+    <ambientLight intensity={.82}/>
+    <hemisphereLight args={['#e8f8ff','#668c55',.62]}/>
+    <directionalLight position={[-25,38,18]} intensity={1.9} castShadow shadow-mapSize={[2048,2048]}/>
     <OrthographicCamera makeDefault position={[62,72,62]} zoom={8.2} near={.1} far={420}/>
     <OrbitControls
       enableRotate
@@ -324,7 +355,7 @@ function Scene() {
       maxZoom={22}
     />
     <Nature/>
-    <MainCabin/>
+    <MainOffice/>
   </>;
 }
 
