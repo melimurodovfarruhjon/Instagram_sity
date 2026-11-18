@@ -370,6 +370,54 @@ function Nature() {
   </group>;
 }
 
+function SkyDome() {
+  const geometry=useMemo(()=>{
+    const radius=7000;
+    const geo=new THREE.SphereGeometry(radius,48,32);
+    const positions=geo.attributes.position;
+    const colors=[];
+    const horizon=new THREE.Color('#f5e4c5');
+    const middle=new THREE.Color('#a9dcea');
+    const zenith=new THREE.Color('#65a9d4');
+    for(let i=0;i<positions.count;i++){
+      const height=THREE.MathUtils.clamp(positions.getY(i)/radius,0,1);
+      const lower=THREE.MathUtils.smoothstep(height,0,.55);
+      const upper=THREE.MathUtils.smoothstep(height,.35,1);
+      const color=horizon.clone().lerp(middle,lower).lerp(zenith,upper*.72);
+      colors.push(color.r,color.g,color.b);
+    }
+    geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+    return geo;
+  },[]);
+  return <mesh geometry={geometry}>
+    <meshBasicMaterial vertexColors side={THREE.BackSide} fog={false} depthWrite={false}/>
+  </mesh>;
+}
+
+function Cloud({position,scale=1}) {
+  const puffs=[[-1,0,0,1.05],[0,.25,0,1.35],[1,.05,0,1],[.4,.45,.08,.9],[-.35,.42,-.05,.82]];
+  return <group position={position} scale={scale}>
+    {puffs.map(([x,y,z,size],i)=><mesh key={i} position={[x,y,z]} scale={[size*1.25,size,size*.8]}>
+      <sphereGeometry args={[1,16,12]}/>
+      <meshBasicMaterial color={i%2?'#fffaf0':'#ffffff'} transparent opacity={.72} depthWrite={false} fog={false}/>
+    </mesh>)}
+  </group>;
+}
+
+function Clouds() {
+  const groups=[
+    [[-210,105,-180],18],
+    [[70,145,-265],22],
+    [[290,118,5],19],
+    [[-315,155,100],24],
+    [[110,175,305],21],
+    [[-95,122,340],18],
+    [[355,132,-225],20],
+    [[-355,128,-295],19]
+  ];
+  return <group>{groups.map(([position,scale],i)=><Cloud key={'cloud'+i} position={position} scale={scale}/>)}</group>;
+}
+
 function WorldEnvironment() {
   return <mesh position={[0,-.3,0]} rotation-x={-Math.PI/2} receiveShadow>
     <planeGeometry args={[20000,20000]}/>
@@ -380,6 +428,8 @@ function WorldEnvironment() {
 function Scene() {
   return <>
     <color attach="background" args={['#b9dfec']}/>
+    <SkyDome/>
+    <Clouds/>
     <fog attach="fog" args={['#b9dfec',850,3200]}/>
     <ambientLight intensity={.82}/>
     <hemisphereLight args={['#e8f8ff','#668c55',.62]}/>
