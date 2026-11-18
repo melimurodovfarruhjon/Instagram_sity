@@ -271,7 +271,7 @@ function ScatteredTrees() {
     </instancedMesh>
     <instancedMesh ref={canopyRef} args={[undefined,undefined,trees.length*4]}>
       <icosahedronGeometry args={[1,1]}/>
-      <meshStandardMaterial color="#ffffff" vertexColors flatShading roughness={1}/>
+      <meshStandardMaterial color="#ffffff" flatShading roughness={1}/>
     </instancedMesh>
   </>;
 }
