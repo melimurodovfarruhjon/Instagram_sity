@@ -192,27 +192,66 @@ function GrassField() {
 
 function OfficeGlassPanel({position,rotationY=0,width=2.8,height=3.35}) {
   return <group position={position} rotation-y={rotationY}>
-    <mesh position={[0,0,-.02]} castShadow>
-      <boxGeometry args={[width-.16,height-.16,.12]}/>
-      <meshStandardMaterial color="#65b8ca" metalness={.42} roughness={.18} emissive="#174653" emissiveIntensity={.16} transparent opacity={.86}/>
+    <mesh position={[0,0,-.02]}>
+      <boxGeometry args={[width-.16,height-.16,.09]}/>
+      <meshPhysicalMaterial color="#c8f4ff" transmission={.9} thickness={.12} ior={1.46} roughness={.055} metalness={0} transparent opacity={.32} envMapIntensity={1}/>
     </mesh>
     {[-width/2,width/2].map(x=><mesh key={'edge'+x} position={[x,0,.08]}>
-      <boxGeometry args={[.12,height,.18]}/><meshStandardMaterial color="#d9e8e8" metalness={.72} roughness={.22}/>
+      <boxGeometry args={[.12,height,.18]}/><meshStandardMaterial color="#dce8e7" metalness={.72} roughness={.2}/>
     </mesh>)}
     {[-height/2,height/2].map(y=><mesh key={'rail'+y} position={[0,y,.08]}>
-      <boxGeometry args={[width,.12,.18]}/><meshStandardMaterial color="#d9e8e8" metalness={.72} roughness={.22}/>
+      <boxGeometry args={[width,.12,.18]}/><meshStandardMaterial color="#dce8e7" metalness={.72} roughness={.2}/>
     </mesh>)}
     <mesh position={[0,0,.09]}>
-      <boxGeometry args={[.09,height-.12,.18]}/><meshStandardMaterial color="#a9d3d8" metalness={.65} roughness={.24}/>
+      <boxGeometry args={[.08,height-.12,.18]}/><meshStandardMaterial color="#a8ced3" metalness={.6} roughness={.22}/>
     </mesh>
   </group>;
 }
 
 function OfficeBalconyRail({x}) {
   return <group position={[x,5.25,10.45]}>
-    <mesh><boxGeometry args={[2.85,1.05,.14]}/><meshStandardMaterial color="#74c7d1" metalness={.36} roughness={.2} transparent opacity={.58}/></mesh>
+    <mesh><boxGeometry args={[2.85,1.05,.14]}/><meshPhysicalMaterial color="#c8f4ff" transmission={.82} thickness={.08} roughness={.08} transparent opacity={.38}/></mesh>
     <mesh position={[0,.55,0]}><boxGeometry args={[2.9,.12,.2]}/><meshStandardMaterial color="#dce9e8" metalness={.75} roughness={.2}/></mesh>
     {[-1.38,1.38].map(side=><mesh key={side} position={[side,0,0]}><boxGeometry args={[.1,1.15,.22]}/><meshStandardMaterial color="#dce9e8" metalness={.75} roughness={.2}/></mesh>)}
+  </group>;
+}
+
+function OfficeSofa({position,rotationY=0}) {
+  return <group position={position} rotation-y={rotationY}>
+    {[[-1.15,.16,-.38],[1.15,.16,-.38],[-1.15,.16,.38],[1.15,.16,.38]].map(([x,y,z],i)=><mesh key={'leg'+i} position={[x,y,z]}><cylinderGeometry args={[.045,.06,.32,8]}/><meshStandardMaterial color="#485c62" metalness={.5} roughness={.3}/></mesh>)}
+    <mesh position={[0,.48,0]}><boxGeometry args={[2.8,.5,1.15]}/><meshStandardMaterial color="#4b7e83" roughness={.82}/></mesh>
+    <mesh position={[0,.98,-.43]}><boxGeometry args={[2.8,.95,.3]}/><meshStandardMaterial color="#39656d" roughness={.82}/></mesh>
+    {[-1.42,1.42].map(side=><mesh key={side} position={[side,.72,0]}><boxGeometry args={[.28,.8,1.15]}/><meshStandardMaterial color="#47767d" roughness={.82}/></mesh>)}
+    {[-.78,0,.78].map(x=><mesh key={x} position={[x,.76,.08]}><boxGeometry args={[.72,.16,.78]}/><meshStandardMaterial color={x===0?'#91b8b6':'#79a6a7'} roughness={.9}/></mesh>)}
+  </group>;
+}
+
+function OfficeChair({position,rotationY=0}) {
+  return <group position={position} rotation-y={rotationY}>
+    <mesh position={[0,.58,0]}><boxGeometry args={[.95,.2,.92]}/><meshStandardMaterial color="#526b71" roughness={.7}/></mesh>
+    <mesh position={[0,1.12,-.34]}><boxGeometry args={[.88,1.05,.18]}/><meshStandardMaterial color="#405b62" roughness={.72}/></mesh>
+    <mesh position={[0,.25,0]}><cylinderGeometry args={[.07,.09,.5,8]}/><meshStandardMaterial color="#c7d1d0" metalness={.7} roughness={.24}/></mesh>
+    {[0,1,2,3,4].map(i=><mesh key={i} position={[Math.cos(i*Math.PI*2/5)*.38,.06,Math.sin(i*Math.PI*2/5)*.38]} rotation-z={Math.PI/2}><cylinderGeometry args={[.025,.025,.42,6]}/><meshStandardMaterial color="#89999a" metalness={.6} roughness={.3}/></mesh>)}
+  </group>;
+}
+
+function OfficeWorkstation({position}) {
+  return <group position={position}>
+    <mesh position={[0,1.05,0]}><boxGeometry args={[2.65,.16,1.25]}/><meshStandardMaterial color="#d8e1df" roughness={.38}/></mesh>
+    {[-1.16,1.16].map(x=><mesh key={x} position={[x,.55,0]}><boxGeometry args={[.1,1,.1]}/><meshStandardMaterial color="#83999b" metalness={.45} roughness={.3}/></mesh>)}
+    <mesh position={[0,1.68,-.38]}><boxGeometry args={[1.18,.78,.1]}/><meshStandardMaterial color="#1e3943" metalness={.35} roughness={.2}/></mesh>
+    <mesh position={[0,1.68,-.315]}><boxGeometry args={[1.03,.61,.025]}/><meshStandardMaterial color="#6ac8d6" emissive="#2a7180" emissiveIntensity={.4} roughness={.2}/></mesh>
+    <mesh position={[0,1.45,-.38]}><boxGeometry args={[.12,.32,.12]}/><meshStandardMaterial color="#879b9b" metalness={.5} roughness={.3}/></mesh>
+    <mesh position={[0,1.16,.35]}><boxGeometry args={[.72,.035,.24]}/><meshStandardMaterial color="#9caead" roughness={.55}/></mesh>
+    <OfficeChair position={[0,0,1.02]}/>
+  </group>;
+}
+
+function OfficePlant({position,scale=1}) {
+  return <group position={position} scale={scale}>
+    <mesh position={[0,.45,0]}><cylinderGeometry args={[.42,.55,.9,8]}/><meshStandardMaterial color="#607d78" roughness={.75}/></mesh>
+    {[-.35,0,.35].map((x,i)=><mesh key={i} position={[x,1.3,i===1?.08:-.08]}><icosahedronGeometry args={[.48,1]}/><meshStandardMaterial color={i===1?'#7bb184':'#5d9b70'} flatShading roughness={1}/></mesh>)}
+    <mesh position={[0,1.8,0]}><icosahedronGeometry args={[.42,1]}/><meshStandardMaterial color="#87bb83" flatShading roughness={1}/></mesh>
   </group>;
 }
 
@@ -226,15 +265,10 @@ function MainOffice() {
   const upperFront=[-7.1,-4.2,4.2,7.1];
   const sides=[-5.1,-1.7,1.7,5.1];
   return <group position={[0,baseY,0]}>
-    <mesh position={[0,.28,0]} receiveShadow castShadow>
-      <boxGeometry args={[21,.56,16.3]}/><meshStandardMaterial color="#89979a" roughness={.82}/>
-    </mesh>
-    <mesh position={[0,2.38,0]} castShadow receiveShadow>
-      <boxGeometry args={[18,3.7,13.2]}/><meshStandardMaterial color="#203d49" metalness={.42} roughness={.28}/>
-    </mesh>
-    <mesh position={[0,6.35,0]} castShadow receiveShadow>
-      <boxGeometry args={[19.4,3.8,14.2]}/><meshStandardMaterial color="#244451" metalness={.46} roughness={.25}/>
-    </mesh>
+    <mesh position={[0,.28,0]} receiveShadow castShadow><boxGeometry args={[21,.56,16.3]}/><meshStandardMaterial color="#89979a" roughness={.82}/></mesh>
+    <mesh position={[0,.65,0]} receiveShadow><boxGeometry args={[17.8,.16,12.8]}/><meshStandardMaterial color="#aab9b8" metalness={.12} roughness={.32}/></mesh>
+    <mesh position={[0,2.38,0]}><boxGeometry args={[18,3.7,13.2]}/><meshPhysicalMaterial color="#c8f4ff" transmission={.9} thickness={.12} ior={1.46} roughness={.055} transparent opacity={.1}/></mesh>
+    <mesh position={[0,6.35,0]}><boxGeometry args={[19.4,3.8,14.2]}/><meshPhysicalMaterial color="#c8f4ff" transmission={.9} thickness={.12} ior={1.46} roughness={.055} transparent opacity={.08}/></mesh>
     {lowerFront.map((x,i)=><OfficeGlassPanel key={'lower'+i} position={[x,2.38,6.67]}/>)}
     <OfficeGlassPanel position={[0,2.38,6.72]} width={3.1} height={3.45}/>
     {upperFront.map((x,i)=><OfficeGlassPanel key={'upper'+i} position={[x,6.35,7.18]}/>)}
@@ -244,47 +278,48 @@ function MainOffice() {
     {sides.map((z,i)=><OfficeGlassPanel key={'upperleft'+i} position={[-9.82,6.35,z]} rotationY={-Math.PI/2} width={3.25}/>)}
     {sides.map((z,i)=><OfficeGlassPanel key={'upperright'+i} position={[9.82,6.35,z]} rotationY={Math.PI/2} width={3.25}/>)}
     <mesh position={[0,4.35,0]}><boxGeometry args={[19.8,.42,14.7]}/><meshStandardMaterial color="#d9e5e3" metalness={.6} roughness={.28}/></mesh>
-    {[-9.8,9.8].map(x=><mesh key={'fin'+x} position={[x,4.4,7.21]} castShadow>
-      <boxGeometry args={[.24,8.4,.34]}/><meshStandardMaterial color="#e3ece9" metalness={.75} roughness={.22}/>
-    </mesh>)}
-    <mesh position={[0,4.58,8.7]} castShadow receiveShadow>
-      <boxGeometry args={[12.8,.34,3.35]}/><meshStandardMaterial color="#d2dddd" metalness={.48} roughness={.3}/>
-    </mesh>
+    {[-9.8,9.8].map(x=><mesh key={'fin'+x} position={[x,4.4,7.21]} castShadow><boxGeometry args={[.24,8.4,.34]}/><meshStandardMaterial color="#e3ece9" metalness={.75} roughness={.22}/></mesh>)}
+    <mesh position={[0,4.58,8.7]} castShadow receiveShadow><boxGeometry args={[12.8,.34,3.35]}/><meshStandardMaterial color="#d2dddd" metalness={.48} roughness={.3}/></mesh>
     {[-4.55,-1.52,1.52,4.55].map(x=><OfficeBalconyRail key={'rail'+x} x={x}/>)}
-    {[-6.4,6.4].map(x=><mesh key={'sideRail'+x} position={[x,5.25,8.75]}>
-      <boxGeometry args={[.13,1.05,3.35]}/><meshStandardMaterial color="#cbd8d8" metalness={.72} roughness={.22}/>
-    </mesh>)}
-    <mesh position={[0,4.07,7.7]} castShadow>
-      <boxGeometry args={[7,.2,2.2]}/><meshStandardMaterial color="#243c47" metalness={.65} roughness={.25}/>
-    </mesh>
-    {[-2.8,2.8].map(x=><mesh key={'canopy'+x} position={[x,3.3,7.72]}>
-      <boxGeometry args={[.13,1.45,.13]}/><meshStandardMaterial color="#d8e4e2" metalness={.7} roughness={.25}/>
-    </mesh>)}
-    <mesh position={[0,8.45,0]} castShadow>
-      <boxGeometry args={[20.4,.62,15.1]}/><meshStandardMaterial color="#d8e1df" metalness={.62} roughness={.26}/>
-    </mesh>
-    <mesh position={[0,8.8,0]} castShadow>
-      <boxGeometry args={[18.8,.16,13.6]}/><meshStandardMaterial color="#2f5963" metalness={.6} roughness={.3}/>
-    </mesh>
+    {[-6.4,6.4].map(x=><mesh key={'sideRail'+x} position={[x,5.25,8.75]}><boxGeometry args={[.13,1.05,3.35]}/><meshStandardMaterial color="#cbd8d8" metalness={.72} roughness={.22}/></mesh>)}
+    <mesh position={[0,4.07,7.7]} castShadow><boxGeometry args={[7,.2,2.2]}/><meshStandardMaterial color="#243c47" metalness={.65} roughness={.25}/></mesh>
+    {[-2.8,2.8].map(x=><mesh key={'canopy'+x} position={[x,3.3,7.72]}><boxGeometry args={[.13,1.45,.13]}/><meshStandardMaterial color="#d8e4e2" metalness={.7} roughness={.25}/></mesh>)}
+    <mesh position={[0,8.45,0]} castShadow><boxGeometry args={[20.4,.62,15.1]}/><meshStandardMaterial color="#d8e1df" metalness={.62} roughness={.26}/></mesh>
+    <mesh position={[0,8.8,0]} castShadow><boxGeometry args={[18.8,.16,13.6]}/><meshStandardMaterial color="#2f5963" metalness={.6} roughness={.3}/></mesh>
     {[-5.4,-1.8,1.8,5.4].map(x=><group key={'solar'+x} position={[x,8.97,-1.8]} rotation-x={-.12}>
       <mesh><boxGeometry args={[3.15,.1,3.4]}/><meshStandardMaterial color="#264c69" metalness={.55} roughness={.22}/></mesh>
-      {[ -1,0,1 ].map(v=><mesh key={v} position={[v, .06,0]}><boxGeometry args={[.035,.025,3.35]}/><meshStandardMaterial color="#a9d6e4" metalness={.5} roughness={.25}/></mesh>)}
+      {[-1,0,1].map(v=><mesh key={v} position={[v,.06,0]}><boxGeometry args={[.035,.025,3.35]}/><meshStandardMaterial color="#a9d6e4" metalness={.5} roughness={.25}/></mesh>)}
       <mesh position={[0,.06,0]}><boxGeometry args={[3.1,.025,.04]}/><meshStandardMaterial color="#a9d6e4" metalness={.5} roughness={.25}/></mesh>
     </group>)}
+    <group position={[0,.65,0]}>
+      <pointLight position={[0,3.1,-1]} color="#c3f0ff" intensity={1.6} distance={18}/>
+      <pointLight position={[0,7.1,-1]} color="#e3f7ff" intensity={1.4} distance={18}/>
+      <mesh position={[0,.12,2.4]}><boxGeometry args={[8,.08,4]}/><meshStandardMaterial color="#627f81" roughness={.9}/></mesh>
+      <mesh position={[0,1.05,-2.25]}><boxGeometry args={[5.2,1.1,1.25]}/><meshStandardMaterial color="#d8e1de" roughness={.42}/></mesh>
+      <mesh position={[0,1.68,-2.25]}><boxGeometry args={[5.35,.16,1.3]}/><meshStandardMaterial color="#87b8bb" roughness={.3}/></mesh>
+      <mesh position={[0,1.72,-1.58]}><boxGeometry args={[4.8,.08,.12]}/><meshStandardMaterial color="#9be2e2" emissive="#51aab4" emissiveIntensity={.6}/></mesh>
+      <OfficeSofa position={[-5.4,.08,-.15]}/>
+      <OfficeSofa position={[5.4,.08,-.15]}/>
+      <mesh position={[0,.58,.15]}><cylinderGeometry args={[1.15,1.15,.16,12]}/><meshStandardMaterial color="#e1e8e5" metalness={.24} roughness={.3}/></mesh>
+      <mesh position={[0,.92,.15]}><cylinderGeometry args={[.18,.22,.55,8]}/><meshStandardMaterial color="#a9b9b7" metalness={.6} roughness={.25}/></mesh>
+      <OfficePlant position={[-7.5,.12,-4.7]} scale={.8}/>
+      <OfficePlant position={[7.5,.12,-4.7]} scale={.8}/>
+    </group>
+    <group position={[0,4.56,0]}>
+      <mesh position={[0,.04,-1.3]}><boxGeometry args={[17.8,.1,12.8]}/><meshStandardMaterial color="#a8b7b7" metalness={.12} roughness={.32}/></mesh>
+      <mesh position={[0,.14,-3.7]}><boxGeometry args={[7.3,.08,2.2]}/><meshStandardMaterial color="#56747a" roughness={.8}/></mesh>
+      <mesh position={[0,.78,-3.5]}><boxGeometry args={[6.8,.18,2.05]}/><meshStandardMaterial color="#d5dfdd" roughness={.34}/></mesh>
+      {[-2.7,-1.6,-.5,.6,1.7,2.8].map(x=><OfficeChair key={'conf'+x} position={[x,.16,-2.0]} rotationY={Math.PI}/>)}
+      {[-6.1,-2.05,2.05,6.1].map((x,i)=><OfficeWorkstation key={'work'+i} position={[x,.16,1.1]}/>)}
+      <OfficePlant position={[-8,.1,-5]} scale={.72}/>
+      <OfficePlant position={[8,.1,-5]} scale={.72}/>
+    </group>
     {[-1,1].map(side=><mesh key={'balconyLight'+side} position={[side*5.85,6.1,10.52]}>
       <boxGeometry args={[.18,.24,.18]}/><meshStandardMaterial color="#d7f5e9" emissive="#8ce0ce" emissiveIntensity={1.2}/>
     </mesh>)}
     {steps.map(([y,z],i)=><mesh key={'step'+i} position={[0,y+.11,z]} rotation-y={(i%2?-.04:.04)} receiveShadow>
       <boxGeometry args={[2.15,.2,1.35]}/><meshStandardMaterial color={i%2?'#bac7c6':'#d4dcdc'} roughness={.65}/>
     </mesh>)}
-    {[-7,7].map(x=><mesh key={'planter'+x} position={[x,0,8.5]}>
-      <boxGeometry args={[2.2,.8,1.6]}/><meshStandardMaterial color="#536b66" roughness={.8}/>
-    </mesh>)}
-    {[-7,7].map(x=><group key={'plant'+x} position={[x,0,8.5]}>
-      {[-.55,0,.55].map((v,i)=><mesh key={i} position={[v,1.1,i%2?.1:-.1]}>
-        <icosahedronGeometry args={[.55,1]}/><meshStandardMaterial color={i%2?'#6aa56f':'#82b676'} flatShading roughness={1}/>
-      </mesh>)}
-    </group>)}
   </group>;
 }
 
