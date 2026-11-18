@@ -455,7 +455,7 @@ function Scene() {
       maxDistance={210}
       minZoom={8}
       maxZoom={22}
-      maxTargetRadius={300}
+      maxTargetRadius={135}
     />
     <WorldEnvironment/>
     <Nature/>
