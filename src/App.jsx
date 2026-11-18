@@ -267,8 +267,6 @@ function MainOffice() {
   return <group position={[0,baseY,0]}>
     <mesh position={[0,.28,0]} receiveShadow castShadow><boxGeometry args={[21,.56,16.3]}/><meshStandardMaterial color="#89979a" roughness={.82}/></mesh>
     <mesh position={[0,.65,0]} receiveShadow><boxGeometry args={[17.8,.16,12.8]}/><meshStandardMaterial color="#aab9b8" metalness={.12} roughness={.32}/></mesh>
-    <mesh position={[0,2.38,0]}><boxGeometry args={[18,3.7,13.2]}/><meshPhysicalMaterial color="#c8f4ff" transmission={.9} thickness={.12} ior={1.46} roughness={.055} transparent opacity={.1}/></mesh>
-    <mesh position={[0,6.35,0]}><boxGeometry args={[19.4,3.8,14.2]}/><meshPhysicalMaterial color="#c8f4ff" transmission={.9} thickness={.12} ior={1.46} roughness={.055} transparent opacity={.08}/></mesh>
     {lowerFront.map((x,i)=><OfficeGlassPanel key={'lower'+i} position={[x,2.38,6.67]}/>)}
     <OfficeGlassPanel position={[0,2.38,6.72]} width={3.1} height={3.45}/>
     {upperFront.map((x,i)=><OfficeGlassPanel key={'upper'+i} position={[x,6.35,7.18]}/>)}
