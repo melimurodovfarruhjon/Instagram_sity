@@ -434,7 +434,7 @@ function Scene() {
     <ambientLight intensity={.82}/>
     <hemisphereLight args={['#e8f8ff','#668c55',.62]}/>
     <directionalLight position={[-25,38,18]} intensity={1.9} castShadow shadow-mapSize={[2048,2048]}/>
-    <OrthographicCamera makeDefault position={[62,72,62]} zoom={8.2} near={.1} far={12000}/>
+    <OrthographicCamera makeDefault position={[62,95,62]} zoom={9.5} near={.1} far={12000}/>
     <OrbitControls
       enableRotate
       enablePan
@@ -448,11 +448,12 @@ function Scene() {
       zoomSpeed={1.15}
       mouseButtons={{ LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE }}
       touches={{ ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE }}
-      maxPolarAngle={Math.PI/2.15}
+      maxPolarAngle={Math.PI/3}
+      minPolarAngle={Math.PI/8}
       minPolarAngle={Math.PI/5}
       minDistance={30}
       maxDistance={210}
-      minZoom={4.2}
+      minZoom={8}
       maxZoom={22}
       maxTargetRadius={300}
     />
