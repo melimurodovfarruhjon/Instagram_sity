@@ -209,7 +209,7 @@ function OfficeGlassPanel({position,rotationY=0,width=2.8,height=3.35}) {
 }
 
 function OfficeBalconyRail({x}) {
-  return <group position={[x,5.45,10.45]}>
+  return <group position={[x,5.25,10.45]}>
     <mesh><boxGeometry args={[2.85,1.05,.14]}/><meshStandardMaterial color="#74c7d1" metalness={.36} roughness={.2} transparent opacity={.58}/></mesh>
     <mesh position={[0,.55,0]}><boxGeometry args={[2.9,.12,.2]}/><meshStandardMaterial color="#dce9e8" metalness={.75} roughness={.2}/></mesh>
     {[-1.38,1.38].map(side=><mesh key={side} position={[side,0,0]}><boxGeometry args={[.1,1.15,.22]}/><meshStandardMaterial color="#dce9e8" metalness={.75} roughness={.2}/></mesh>)}
@@ -251,7 +251,7 @@ function MainOffice() {
       <boxGeometry args={[12.8,.34,3.35]}/><meshStandardMaterial color="#d2dddd" metalness={.48} roughness={.3}/>
     </mesh>
     {[-4.55,-1.52,1.52,4.55].map(x=><OfficeBalconyRail key={'rail'+x} x={x}/>)}
-    {[-6.4,6.4].map(x=><mesh key={'sideRail'+x} position={[x,5.45,8.75]}>
+    {[-6.4,6.4].map(x=><mesh key={'sideRail'+x} position={[x,5.25,8.75]}>
       <boxGeometry args={[.13,1.05,3.35]}/><meshStandardMaterial color="#cbd8d8" metalness={.72} roughness={.22}/>
     </mesh>)}
     <mesh position={[0,4.07,7.7]} castShadow>
