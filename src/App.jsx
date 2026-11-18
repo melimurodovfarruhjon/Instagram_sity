@@ -360,9 +360,37 @@ function Nature() {
   </group>;
 }
 
+function WorldEnvironment() {
+  const distantHills=[
+    [-18,-252,90,30,58,'#91b570'],
+    [132,-220,78,27,54,'#82a866'],
+    [246,-82,72,25,62,'#95b873'],
+    [224,92,88,32,58,'#789c5e'],
+    [128,218,76,28,64,'#8bad6b'],
+    [-18,258,96,26,60,'#95b874'],
+    [-168,205,78,34,62,'#7c9f61'],
+    [-248,64,82,24,58,'#8eae6d'],
+    [-224,-94,74,31,64,'#789c5e'],
+    [-126,-222,92,24,56,'#91b570'],
+    [62,-282,66,21,45,'#88a969'],
+    [258,18,58,22,74,'#86a967']
+  ];
+  return <group>
+    <mesh position={[0,-.3,0]} rotation-x={-Math.PI/2} receiveShadow>
+      <planeGeometry args={[2000,2000]}/>
+      <meshStandardMaterial color="#789f59" roughness={1}/>
+    </mesh>
+    {distantHills.map(([x,z,width,height,depth,color],i)=><mesh key={'horizon'+i} position={[x,height/2-.3,z]} scale={[width,height,depth]} receiveShadow castShadow>
+      <icosahedronGeometry args={[1,2]}/>
+      <meshStandardMaterial color={color} flatShading roughness={1}/>
+    </mesh>)}
+  </group>;
+}
+
 function Scene() {
   return <>
     <color attach="background" args={['#b9dfec']}/>
+    <fog attach="fog" args={['#b9dfec',260,560]}/>
     <ambientLight intensity={.82}/>
     <hemisphereLight args={['#e8f8ff','#668c55',.62]}/>
     <directionalLight position={[-25,38,18]} intensity={1.9} castShadow shadow-mapSize={[2048,2048]}/>
@@ -387,6 +415,7 @@ function Scene() {
       minZoom={4.2}
       maxZoom={22}
     />
+    <WorldEnvironment/>
     <Nature/>
     <MainOffice/>
   </>;
