@@ -154,9 +154,9 @@ function GrassField() {
   const bladeCount=6;
   const clumps=useMemo(()=>{
     const result=[];
-    for(let seed=1;result.length<520;seed++){
-      const x=seededValue(seed*2)*170-85;
-      const z=seededValue(seed*2+1)*170-85;
+    for(let seed=1;result.length<7000;seed++){
+      const x=seededValue(seed*2)*780-390;
+      const z=seededValue(seed*2+1)*780-390;
       if(Math.abs(x)<14&&Math.abs(z)<17)continue;
       result.push({x,z,seed,y:terrainHeight(x,z)});
     }
@@ -194,10 +194,86 @@ function GrassField() {
     if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;
     mesh.computeBoundingSphere();
   },[clumps]);
-  return <instancedMesh ref={meshRef} args={[undefined,undefined,clumps.length*bladeCount]} castShadow>
+  return <instancedMesh ref={meshRef} args={[undefined,undefined,clumps.length*bladeCount]}>
     <coneGeometry args={[.12,1,5]}/>
     <meshStandardMaterial color="#ffffff" roughness={1} flatShading/>
   </instancedMesh>;
+}
+
+function ScatteredTrees() {
+  const trunkRef=useRef();
+  const canopyRef=useRef();
+  const trees=useMemo(()=>{
+    const result=[];
+    for(let grove=1;result.length<420;grove++){
+      const cx=seededValue(grove*31)*700-350;
+      const cz=seededValue(grove*37)*700-350;
+      if(Math.abs(cx)<32&&Math.abs(cz)<32)continue;
+      const inGrove=3+Math.floor(seededValue(grove*41)*3);
+      for(let i=0;i<inGrove&&result.length<420;i++){
+        const seed=grove*101+i;
+        const angle=seededValue(seed*2)*Math.PI*2;
+        const radius=4+seededValue(seed*3)*12;
+        const x=cx+Math.cos(angle)*radius;
+        const z=cz+Math.sin(angle)*radius;
+        if(Math.abs(x)>380||Math.abs(z)>380)continue;
+        result.push({x,z,scale:.72+seededValue(seed*5)*.52,variant:Math.floor(seededValue(seed*7)*treePalette.length)});
+      }
+    }
+    return result;
+  },[]);
+  useLayoutEffect(()=>{
+    const trunks=trunkRef.current;
+    const canopies=canopyRef.current;
+    if(!trunks||!canopies)return;
+    const matrix=new THREE.Matrix4();
+    const position=new THREE.Vector3();
+    const rotation=new THREE.Euler();
+    const quaternion=new THREE.Quaternion();
+    const scale=new THREE.Vector3();
+    const color=new THREE.Color();
+    let canopyIndex=0;
+    trees.forEach(({x,z,scale:treeScale,variant},index)=>{
+      const y=terrainHeight(x,z);
+      rotation.set(0,seededValue(index+17)*Math.PI*2,0);
+      quaternion.setFromEuler(rotation);
+      position.set(x,y+.9*treeScale,z);
+      scale.set(treeScale,treeScale,treeScale);
+      matrix.compose(position,quaternion,scale);
+      trunks.setMatrixAt(index,matrix);
+      const [dark,main,light]=treePalette[variant];
+      const leaves=[
+        [0,2.2,0,1.42,1.25,1.3,main],
+        [-.78,1.95,.08,.92,.95,.92,dark],
+        [.78,2.02,-.04,.96,.98,.95,light],
+        [.05,2.92,.08,.82,.8,.82,light]
+      ];
+      leaves.forEach(([ox,oy,oz,sx,sy,sz,tint])=>{
+        position.set(x+ox*treeScale,y+oy*treeScale,z+oz*treeScale);
+        scale.set(sx*treeScale,sy*treeScale,sz*treeScale);
+        matrix.compose(position,quaternion,scale);
+        canopies.setMatrixAt(canopyIndex,matrix);
+        color.set(tint);
+        canopies.setColorAt(canopyIndex,color);
+        canopyIndex++;
+      });
+    });
+    trunks.instanceMatrix.needsUpdate=true;
+    canopies.instanceMatrix.needsUpdate=true;
+    if(canopies.instanceColor)canopies.instanceColor.needsUpdate=true;
+    trunks.computeBoundingSphere();
+    canopies.computeBoundingSphere();
+  },[trees]);
+  return <>
+    <instancedMesh ref={trunkRef} args={[undefined,undefined,trees.length]}>
+      <cylinderGeometry args={[.2,.29,1.8,7]}/>
+      <meshStandardMaterial color="#805035" roughness={1}/>
+    </instancedMesh>
+    <instancedMesh ref={canopyRef} args={[undefined,undefined,trees.length*4]}>
+      <icosahedronGeometry args={[1,1]}/>
+      <meshStandardMaterial color="#ffffff" vertexColors flatShading roughness={1}/>
+    </instancedMesh>
+  </>;
 }
 
 function OfficeGlassPanel({position,rotationY=0,width=2.8,height=3.35}) {
@@ -367,6 +443,7 @@ function Nature() {
     {bushes.map(([x,z],i)=><Bush key={'bush'+i} x={x} z={z} scale={.7+(i%3)*.18}/>)}
     {flowers.map(([x,z],i)=><FlowerPatch key={'flower'+i} x={x} z={z}/>)}
     <GrassField/>
+    <ScatteredTrees/>
   </group>;
 }
 
