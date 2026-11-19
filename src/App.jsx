@@ -505,7 +505,6 @@ function Scene() {
       touches={{ ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE }}
       maxPolarAngle={Math.PI/3}
       minPolarAngle={Math.PI/8}
-      minPolarAngle={Math.PI/5}
       minDistance={30}
       maxDistance={210}
       minZoom={8}
